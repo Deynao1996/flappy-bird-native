@@ -1,8 +1,16 @@
-import React from 'react'
+import { useEffect } from 'react'
 import { Canvas, useImage, Image } from '@shopify/react-native-skia'
 import { useWindowDimensions } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
 import {
+  useSharedValue,
+  withTiming,
+  withRepeat,
+  withSequence,
+  Easing
+} from 'react-native-reanimated'
+import {
+  ANIMATION_DURATION,
   BIRD_HEIGHT,
   BIRD_WIDTH,
   GROUND_HEIGHT,
@@ -12,6 +20,8 @@ import {
 
 const App = () => {
   const { width, height } = useWindowDimensions()
+  const defaultX = width + 50
+  const x = useSharedValue(defaultX)
 
   // Importing assets
   const bg = useImage(require('./assets/sprites/background-day.png'))
@@ -23,6 +33,19 @@ const App = () => {
   const pipeTranslateYOffset = 0
   const pipeBetweenOffset = 200
 
+  useEffect(() => {
+    x.value = withRepeat(
+      withSequence(
+        withTiming(-100, {
+          duration: ANIMATION_DURATION,
+          easing: Easing.linear
+        }),
+        withTiming(defaultX, { duration: 0 })
+      ),
+      -1
+    )
+  }, [])
+
   return (
     <Canvas style={{ width, height, backgroundColor: 'red' }}>
       <Image image={bg} fit={'cover'} width={width} height={height} />
@@ -31,7 +54,20 @@ const App = () => {
       <Image
         image={pipeTop}
         y={pipeTranslateYOffset - PIPE_HEIGHT / 2 + pipeBetweenOffset}
-        x={width / 2}
+        x={x}
+        width={PIPE_WIDTH}
+        height={PIPE_HEIGHT}
+      />
+      <Image
+        image={pipeTop}
+        y={
+          pipeTranslateYOffset -
+          PIPE_HEIGHT / 2 -
+          pipeBetweenOffset +
+          pipeBetweenOffset -
+          100
+        }
+        x={x}
         width={PIPE_WIDTH}
         height={PIPE_HEIGHT}
       />
@@ -39,7 +75,21 @@ const App = () => {
       <Image
         image={pipeBottom}
         y={height - PIPE_HEIGHT / 2 + pipeTranslateYOffset - pipeBetweenOffset}
-        x={width / 2}
+        x={x}
+        width={PIPE_WIDTH}
+        height={PIPE_HEIGHT}
+      />
+      <Image
+        image={pipeBottom}
+        y={
+          height -
+          PIPE_HEIGHT / 2 +
+          pipeTranslateYOffset -
+          pipeBetweenOffset +
+          pipeBetweenOffset +
+          100
+        }
+        x={x}
         width={PIPE_WIDTH}
         height={PIPE_HEIGHT}
       />
