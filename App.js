@@ -1,5 +1,11 @@
-import { useEffect, useMemo } from 'react'
-import { Canvas, useImage, Image, Group } from '@shopify/react-native-skia'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  Canvas,
+  useImage,
+  Image,
+  Group,
+  Text
+} from '@shopify/react-native-skia'
 import { useWindowDimensions } from 'react-native'
 import {
   useSharedValue,
@@ -10,7 +16,9 @@ import {
   useFrameCallback,
   interpolate,
   useDerivedValue,
-  Extrapolation
+  Extrapolation,
+  useAnimatedReaction,
+  runOnJS
 } from 'react-native-reanimated'
 import {
   GestureHandlerRootView,
@@ -23,16 +31,17 @@ import {
   BIRD_WIDTH,
   GRAVITY,
   GROUND_HEIGHT,
+  PIPE_BETWEEN_OFFSET,
   PIPE_HEIGHT,
   PIPE_WIDTH,
   VELOCITY_ON_TAP
 } from './store'
-
-//TODO Check safe area view
-//TODO Check pipes between offset
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { StatusBar } from 'expo-status-bar'
 
 const App = () => {
   const { width, height } = useWindowDimensions()
+  const [score, setScore] = useState(0)
   const defaultX = width + 50
 
   //Animated values
@@ -57,14 +66,19 @@ const App = () => {
   }))
 
   // Importing assets
-  const bg = useImage(require('./assets/sprites/background-day.png'))
+  const bg = useImage(require('./assets/sprites/background-night.png'))
   const bird = useImage(require('./assets/sprites/yellowbird-upflap.png'))
-  const pipeBottom = useImage(require('./assets/sprites/pipe-green.png'))
-  const pipeTop = useImage(require('./assets/sprites/pipe-green-top.png'))
+  const pipeBottom = useImage(require('./assets/sprites/pipe-bottom.png'))
+  const pipeTop = useImage(require('./assets/sprites/pipe-top.png'))
   const baseGround = useImage(require('./assets/sprites/base.png'))
 
-  const pipeTranslateYOffset = 0
-  const pipeBetweenOffset = 200
+  const pipeTranslateYOffset = -30
+
+  const gesture = useMemo(() => {
+    return Gesture.Tap().onStart(() => {
+      birdYVelocity.value = VELOCITY_ON_TAP
+    })
+  })
 
   function animatePipesPosition() {
     pipeX.value = withRepeat(
@@ -83,11 +97,21 @@ const App = () => {
     animatePipesPosition()
   }, [])
 
-  const gesture = useMemo(() => {
-    return Gesture.Tap().onStart(() => {
-      birdYVelocity.value = VELOCITY_ON_TAP
-    })
-  })
+  useAnimatedReaction(
+    () => pipeX.value,
+    (currentValue, previousValue) => {
+      //Increase counter score on the edge
+      const edge = width / 4
+      if (
+        currentValue !== previousValue &&
+        previousValue &&
+        currentValue <= edge &&
+        previousValue > edge
+      ) {
+        runOnJS(setScore)(score + 1)
+      }
+    }
+  )
 
   useFrameCallback(({ timeSincePreviousFrame: dt }) => {
     if (!dt) return
@@ -97,83 +121,64 @@ const App = () => {
   })
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <GestureDetector gesture={gesture}>
-        <Canvas style={{ width, height, backgroundColor: 'red' }}>
-          <Image image={bg} fit={'cover'} width={width} height={height} />
+    <>
+      <SafeAreaView>
+        <GestureHandlerRootView>
+          <GestureDetector gesture={gesture}>
+            <Canvas style={{ width, height, backgroundColor: 'red' }}>
+              <Image image={bg} fit={'cover'} width={width} height={height} />
 
-          {/* Pipes */}
-          <Image
-            image={pipeTop}
-            y={pipeTranslateYOffset - PIPE_HEIGHT / 2 + pipeBetweenOffset}
-            x={pipeX}
-            width={PIPE_WIDTH}
-            height={PIPE_HEIGHT}
-          />
-          <Image
-            image={pipeTop}
-            y={
-              pipeTranslateYOffset -
-              PIPE_HEIGHT / 2 -
-              pipeBetweenOffset +
-              pipeBetweenOffset -
-              100
-            }
-            x={pipeX}
-            width={PIPE_WIDTH}
-            height={PIPE_HEIGHT}
-          />
+              {/* Pipes */}
+              <Image
+                image={pipeTop}
+                y={pipeTranslateYOffset - PIPE_HEIGHT / 2 + PIPE_BETWEEN_OFFSET}
+                x={pipeX}
+                width={PIPE_WIDTH}
+                height={PIPE_HEIGHT}
+              />
 
-          <Image
-            image={pipeBottom}
-            y={
-              height -
-              PIPE_HEIGHT / 2 +
-              pipeTranslateYOffset -
-              pipeBetweenOffset
-            }
-            x={pipeX}
-            width={PIPE_WIDTH}
-            height={PIPE_HEIGHT}
-          />
-          <Image
-            image={pipeBottom}
-            y={
-              height -
-              PIPE_HEIGHT / 2 +
-              pipeTranslateYOffset -
-              pipeBetweenOffset +
-              pipeBetweenOffset +
-              100
-            }
-            x={pipeX}
-            width={PIPE_WIDTH}
-            height={PIPE_HEIGHT}
-          />
+              <Image
+                image={pipeBottom}
+                y={
+                  height -
+                  PIPE_HEIGHT / 2 +
+                  pipeTranslateYOffset -
+                  PIPE_BETWEEN_OFFSET
+                }
+                x={pipeX}
+                width={PIPE_WIDTH}
+                height={PIPE_HEIGHT}
+              />
 
-          {/* Bird */}
-          <Group transform={birdTransform} origin={birdOrigin}>
-            <Image
-              image={bird}
-              y={birdY}
-              x={width / 4}
-              width={BIRD_WIDTH}
-              height={BIRD_HEIGHT}
-            />
-          </Group>
+              {/* Ground */}
+              <Image
+                image={baseGround}
+                fit={'cover'}
+                width={width}
+                height={GROUND_HEIGHT}
+                y={height - GROUND_HEIGHT / 2}
+                x={0}
+              />
 
-          {/* Ground */}
-          <Image
-            image={baseGround}
-            fit={'cover'}
-            width={width}
-            height={GROUND_HEIGHT}
-            y={height - GROUND_HEIGHT / 2}
-            x={0}
-          />
-        </Canvas>
-      </GestureDetector>
-    </GestureHandlerRootView>
+              {/* Bird */}
+              <Group transform={birdTransform} origin={birdOrigin}>
+                <Image
+                  image={bird}
+                  y={birdY}
+                  x={width / 4}
+                  width={BIRD_WIDTH}
+                  height={BIRD_HEIGHT}
+                />
+              </Group>
+
+              {/* Score */}
+              <Text text={score.toString()} x={width / 2} y={100} />
+            </Canvas>
+          </GestureDetector>
+        </GestureHandlerRootView>
+        <StatusBar style="light" backgroundColor="black" />
+      </SafeAreaView>
+    </>
   )
 }
 
