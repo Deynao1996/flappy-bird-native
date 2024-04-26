@@ -4,9 +4,11 @@ import {
   useImage,
   Image,
   Group,
-  Text
+  Text,
+  matchFont,
+  Fill
 } from '@shopify/react-native-skia'
-import { useWindowDimensions } from 'react-native'
+import { Platform, useWindowDimensions } from 'react-native'
 import {
   useSharedValue,
   withTiming,
@@ -38,6 +40,20 @@ import {
 } from './store'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
+
+//TODO Center score text
+//TODO Check text color
+//TODO Check up border
+//TODO Add sounds
+
+//Font settings
+const fontFamily = Platform.select({ ios: 'Helvetica', default: 'sans-serif' })
+const fontStyle = {
+  fontFamily,
+  fontSize: 40,
+  fontWeight: 'bold'
+}
+const font = matchFont(fontStyle)
 
 const App = () => {
   const { width, height } = useWindowDimensions()
@@ -172,7 +188,12 @@ const App = () => {
               </Group>
 
               {/* Score */}
-              <Text text={score.toString()} x={width / 2} y={100} />
+              <Text
+                text={score.toString()}
+                x={width / 2 - 20}
+                y={100}
+                font={font}
+              />
             </Canvas>
           </GestureDetector>
         </GestureHandlerRootView>
