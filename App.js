@@ -36,7 +36,10 @@ import {
   GRAVITY,
   GROUND_HEIGHT,
   PIPE_BETWEEN_OFFSET,
+  PIPE_END_RANGE,
   PIPE_HEIGHT,
+  PIPE_LEFT_EDGE,
+  PIPE_START_RANGE,
   PIPE_WIDTH,
   VELOCITY_ON_TAP
 } from './store'
@@ -47,6 +50,7 @@ import { StatusBar } from 'expo-status-bar'
 //TODO Check text color
 //TODO Check up border
 //TODO Check useState usage
+//TODO Check difficulty
 //TODO Add sounds
 
 //Font settings
@@ -66,19 +70,21 @@ const App = () => {
   const defaultPipePosX = width + 50
   const defaultBirdYPosition = height / 3
   const defaultBirdXPosition = width / 4
-  const pipeTranslateYOffset = -30
-  const defaultBottomPipeY =
-    height - PIPE_HEIGHT / 2 + pipeTranslateYOffset - PIPE_BETWEEN_OFFSET
-  const defaultTopPipeY =
-    pipeTranslateYOffset - PIPE_HEIGHT / 2 + PIPE_BETWEEN_OFFSET
 
   //Animated values
   const pipeX = useSharedValue(defaultPipePosX)
   const birdY = useSharedValue(defaultBirdYPosition)
   const birdYVelocity = useSharedValue(0)
   const gameOver = useSharedValue(false)
+  const pipeYOffset = useSharedValue(-30)
 
   //Derived values
+  const bottomPipeY = useDerivedValue(
+    () => height - PIPE_HEIGHT / 2 + pipeYOffset.value - PIPE_BETWEEN_OFFSET
+  )
+  const topPipeY = useDerivedValue(
+    () => pipeYOffset.value - PIPE_HEIGHT / 2 + PIPE_BETWEEN_OFFSET
+  )
   const birdTransform = useDerivedValue(() => {
     return [
       {
@@ -109,12 +115,12 @@ const App = () => {
 
     allObstacles.push({
       ...defaultSettings,
-      y: defaultBottomPipeY
+      y: bottomPipeY.value
     })
 
     allObstacles.push({
       ...defaultSettings,
-      y: defaultTopPipeY
+      y: topPipeY.value
     })
     return allObstacles
   })
@@ -142,10 +148,15 @@ const App = () => {
     })
   })
 
+  function getRange(min, max) {
+    'worklet'
+    return Math.random() * (max - min) + min
+  }
+
   function animatePipesPosition() {
     pipeX.value = withRepeat(
       withSequence(
-        withTiming(-100, {
+        withTiming(PIPE_LEFT_EDGE, {
           duration: ANIMATION_DURATION,
           easing: Easing.linear
         }),
@@ -173,6 +184,15 @@ const App = () => {
   useAnimatedReaction(
     () => pipeX.value,
     (currentValue, previousValue) => {
+      //Change position for the position of next gap
+      if (
+        previousValue &&
+        currentValue <= PIPE_LEFT_EDGE &&
+        previousValue >= PIPE_LEFT_EDGE
+      ) {
+        pipeYOffset.value = getRange(PIPE_START_RANGE, PIPE_END_RANGE)
+      }
+
       //Increase counter score on the edge
       const edge = defaultBirdXPosition
       if (
@@ -198,6 +218,7 @@ const App = () => {
         gameOver.value = true
       }
 
+      //Pipes collision detection
       const isColliding = obstacles.value.some((rect) =>
         isPointCollidingWithRect(
           {
@@ -210,26 +231,6 @@ const App = () => {
       if (isColliding) {
         gameOver.value = true
       }
-
-      // //Bottom pipe collision detection
-      // if (
-      //   birdCenterX.value >= pipeX.value && //Right of the left edge
-      //   birdCenterX.value <= pipeX.value + PIPE_WIDTH && //Left of the right edge
-      //   birdCenterY.value >= defaultBottomPipeY && //Below the top edge
-      //   birdCenterY.value <= defaultBottomPipeY + PIPE_HEIGHT //Above the bottom edge
-      // ) {
-      //   gameOver.value = true
-      // }
-
-      // //Top pipe collision detection
-      // if (
-      //   birdCenterX.value >= pipeX.value && //Right of the left edge
-      //   birdCenterX.value <= pipeX.value + PIPE_WIDTH && //Left of the right edge
-      //   birdCenterY.value >= defaultTopPipeY && //Below the top edge
-      //   birdCenterY.value <= defaultTopPipeY + PIPE_HEIGHT //Above the bottom edge
-      // ) {
-      //   gameOver.value = true
-      // }
     }
   )
 
@@ -261,7 +262,7 @@ const App = () => {
               {/* Pipes */}
               <Image
                 image={pipeTop}
-                y={defaultTopPipeY}
+                y={topPipeY}
                 x={pipeX}
                 width={PIPE_WIDTH}
                 height={PIPE_HEIGHT}
@@ -269,12 +270,7 @@ const App = () => {
 
               <Image
                 image={pipeBottom}
-                y={
-                  height -
-                  PIPE_HEIGHT / 2 +
-                  pipeTranslateYOffset -
-                  PIPE_BETWEEN_OFFSET
-                }
+                y={bottomPipeY}
                 x={pipeX}
                 width={PIPE_WIDTH}
                 height={PIPE_HEIGHT}
