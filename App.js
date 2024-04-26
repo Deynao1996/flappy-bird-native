@@ -6,7 +6,8 @@ import {
   Group,
   Text,
   matchFont,
-  Fill
+  Fill,
+  Circle
 } from '@shopify/react-native-skia'
 import { Platform, useWindowDimensions } from 'react-native'
 import {
@@ -20,7 +21,8 @@ import {
   useDerivedValue,
   Extrapolation,
   useAnimatedReaction,
-  runOnJS
+  runOnJS,
+  cancelAnimation
 } from 'react-native-reanimated'
 import {
   GestureHandlerRootView,
@@ -44,6 +46,7 @@ import { StatusBar } from 'expo-status-bar'
 //TODO Center score text
 //TODO Check text color
 //TODO Check up border
+//TODO Check useState usage
 //TODO Add sounds
 
 //Font settings
@@ -58,12 +61,24 @@ const font = matchFont(fontStyle)
 const App = () => {
   const { width, height } = useWindowDimensions()
   const [score, setScore] = useState(0)
-  const defaultX = width + 50
+
+  //Default values
+  const defaultPipePosX = width + 50
+  const defaultBirdYPosition = height / 3
+  const defaultBirdXPosition = width / 4
+  const pipeTranslateYOffset = -30
+  const defaultBottomPipeY =
+    height - PIPE_HEIGHT / 2 + pipeTranslateYOffset - PIPE_BETWEEN_OFFSET
+  const defaultTopPipeY =
+    pipeTranslateYOffset - PIPE_HEIGHT / 2 + PIPE_BETWEEN_OFFSET
 
   //Animated values
-  const pipeX = useSharedValue(defaultX)
-  const birdY = useSharedValue(height / 3)
+  const pipeX = useSharedValue(defaultPipePosX)
+  const birdY = useSharedValue(defaultBirdYPosition)
   const birdYVelocity = useSharedValue(0)
+  const gameOver = useSharedValue(false)
+
+  //Derived values
   const birdTransform = useDerivedValue(() => {
     return [
       {
@@ -77,9 +92,32 @@ const App = () => {
     ]
   })
   const birdOrigin = useDerivedValue(() => ({
-    x: width / 4 + BIRD_WIDTH / 2,
+    x: defaultBirdXPosition + BIRD_WIDTH / 2,
     y: birdY.value + BIRD_HEIGHT / 2
   }))
+  const birdCenterY = useDerivedValue(() => birdY.value + BIRD_HEIGHT / 2)
+  const birdCenterX = useDerivedValue(
+    () => defaultBirdXPosition + BIRD_WIDTH / 2
+  )
+  const obstacles = useDerivedValue(() => {
+    const allObstacles = []
+    const defaultSettings = {
+      x: pipeX.value,
+      h: PIPE_HEIGHT,
+      w: PIPE_WIDTH
+    }
+
+    allObstacles.push({
+      ...defaultSettings,
+      y: defaultBottomPipeY
+    })
+
+    allObstacles.push({
+      ...defaultSettings,
+      y: defaultTopPipeY
+    })
+    return allObstacles
+  })
 
   // Importing assets
   const bg = useImage(require('./assets/sprites/background-night.png'))
@@ -88,11 +126,19 @@ const App = () => {
   const pipeTop = useImage(require('./assets/sprites/pipe-top.png'))
   const baseGround = useImage(require('./assets/sprites/base.png'))
 
-  const pipeTranslateYOffset = -30
-
   const gesture = useMemo(() => {
     return Gesture.Tap().onStart(() => {
-      birdYVelocity.value = VELOCITY_ON_TAP
+      if (gameOver.value) {
+        //Restart game
+        birdY.value = defaultBirdYPosition
+        birdYVelocity.value = 0
+        gameOver.value = false
+        pipeX.value = defaultPipePosX
+        runOnJS(setScore)(0)
+        runOnJS(animatePipesPosition)()
+      } else {
+        birdYVelocity.value = VELOCITY_ON_TAP
+      }
     })
   })
 
@@ -103,9 +149,19 @@ const App = () => {
           duration: ANIMATION_DURATION,
           easing: Easing.linear
         }),
-        withTiming(defaultX, { duration: 0 })
+        withTiming(defaultPipePosX, { duration: 0 })
       ),
       -1
+    )
+  }
+
+  function isPointCollidingWithRect(point, rect) {
+    'worklet'
+    return (
+      point.x >= rect.x && //Right of the left edge
+      point.x <= rect.x + rect.w && //Left of the right edge
+      point.y >= rect.y && //Below the top edge
+      point.y <= rect.y + rect.h //Above the bottom edge
     )
   }
 
@@ -113,11 +169,12 @@ const App = () => {
     animatePipesPosition()
   }, [])
 
+  //Score detection
   useAnimatedReaction(
     () => pipeX.value,
     (currentValue, previousValue) => {
       //Increase counter score on the edge
-      const edge = width / 4
+      const edge = defaultBirdXPosition
       if (
         currentValue !== previousValue &&
         previousValue &&
@@ -129,8 +186,65 @@ const App = () => {
     }
   )
 
+  //Collision detection
+  useAnimatedReaction(
+    () => birdY.value,
+    (currentValue) => {
+      //Ground collision detection
+      if (
+        currentValue > height - GROUND_HEIGHT / 2 - BIRD_HEIGHT ||
+        currentValue < 0
+      ) {
+        gameOver.value = true
+      }
+
+      const isColliding = obstacles.value.some((rect) =>
+        isPointCollidingWithRect(
+          {
+            x: birdCenterX.value,
+            y: birdCenterY.value
+          },
+          rect
+        )
+      )
+      if (isColliding) {
+        gameOver.value = true
+      }
+
+      // //Bottom pipe collision detection
+      // if (
+      //   birdCenterX.value >= pipeX.value && //Right of the left edge
+      //   birdCenterX.value <= pipeX.value + PIPE_WIDTH && //Left of the right edge
+      //   birdCenterY.value >= defaultBottomPipeY && //Below the top edge
+      //   birdCenterY.value <= defaultBottomPipeY + PIPE_HEIGHT //Above the bottom edge
+      // ) {
+      //   gameOver.value = true
+      // }
+
+      // //Top pipe collision detection
+      // if (
+      //   birdCenterX.value >= pipeX.value && //Right of the left edge
+      //   birdCenterX.value <= pipeX.value + PIPE_WIDTH && //Left of the right edge
+      //   birdCenterY.value >= defaultTopPipeY && //Below the top edge
+      //   birdCenterY.value <= defaultTopPipeY + PIPE_HEIGHT //Above the bottom edge
+      // ) {
+      //   gameOver.value = true
+      // }
+    }
+  )
+
+  useAnimatedReaction(
+    () => gameOver.value,
+    (currentValue, previousValue) => {
+      if (currentValue && !previousValue) {
+        //TODO Check alert to user
+        cancelAnimation(pipeX)
+      }
+    }
+  )
+
   useFrameCallback(({ timeSincePreviousFrame: dt }) => {
-    if (!dt) return
+    if (!dt || gameOver.value) return
     //Animate bird position
     birdY.value = birdY.value + birdYVelocity.value * dt * 0.001
     birdYVelocity.value = birdYVelocity.value + GRAVITY * dt * 0.001
@@ -147,7 +261,7 @@ const App = () => {
               {/* Pipes */}
               <Image
                 image={pipeTop}
-                y={pipeTranslateYOffset - PIPE_HEIGHT / 2 + PIPE_BETWEEN_OFFSET}
+                y={defaultTopPipeY}
                 x={pipeX}
                 width={PIPE_WIDTH}
                 height={PIPE_HEIGHT}
@@ -181,11 +295,12 @@ const App = () => {
                 <Image
                   image={bird}
                   y={birdY}
-                  x={width / 4}
+                  x={defaultBirdXPosition}
                   width={BIRD_WIDTH}
                   height={BIRD_HEIGHT}
                 />
               </Group>
+              {/* <Circle cy={birdCenterY} cx={birdCenterX} r={15} color={'red'} /> */}
 
               {/* Score */}
               <Text
