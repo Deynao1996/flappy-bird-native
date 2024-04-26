@@ -5,15 +5,12 @@ import {
   Image,
   Group,
   Text,
-  matchFont,
-  Fill,
-  Circle
+  matchFont
 } from '@shopify/react-native-skia'
 import { Platform, useWindowDimensions } from 'react-native'
 import {
   useSharedValue,
   withTiming,
-  withRepeat,
   withSequence,
   Easing,
   useFrameCallback,
@@ -52,6 +49,9 @@ import { StatusBar } from 'expo-status-bar'
 //TODO Check useState usage
 //TODO Check difficulty
 //TODO Add sounds
+//TODO Refactor code
+//TODO Debug increased speed after gameOver
+//TODO Check alert to user
 
 //Font settings
 const fontFamily = Platform.select({ ios: 'Helvetica', default: 'sans-serif' })
@@ -85,6 +85,9 @@ const App = () => {
   const topPipeY = useDerivedValue(
     () => pipeYOffset.value - PIPE_HEIGHT / 2 + PIPE_BETWEEN_OFFSET
   )
+  const speedCoefficient = useDerivedValue(() => {
+    return interpolate(score, [0, 20], [1, 2])
+  })
   const birdTransform = useDerivedValue(() => {
     return [
       {
@@ -101,28 +104,22 @@ const App = () => {
     x: defaultBirdXPosition + BIRD_WIDTH / 2,
     y: birdY.value + BIRD_HEIGHT / 2
   }))
-  const birdCenterY = useDerivedValue(() => birdY.value + BIRD_HEIGHT / 2)
-  const birdCenterX = useDerivedValue(
-    () => defaultBirdXPosition + BIRD_WIDTH / 2
-  )
   const obstacles = useDerivedValue(() => {
-    const allObstacles = []
     const defaultSettings = {
       x: pipeX.value,
       h: PIPE_HEIGHT,
       w: PIPE_WIDTH
     }
-
-    allObstacles.push({
-      ...defaultSettings,
-      y: bottomPipeY.value
-    })
-
-    allObstacles.push({
-      ...defaultSettings,
-      y: topPipeY.value
-    })
-    return allObstacles
+    return [
+      {
+        ...defaultSettings,
+        y: bottomPipeY.value
+      },
+      {
+        ...defaultSettings,
+        y: topPipeY.value
+      }
+    ]
   })
 
   // Importing assets
@@ -140,8 +137,8 @@ const App = () => {
         birdYVelocity.value = 0
         gameOver.value = false
         pipeX.value = defaultPipePosX
-        runOnJS(setScore)(0)
         runOnJS(animatePipesPosition)()
+        runOnJS(setScore)(0)
       } else {
         birdYVelocity.value = VELOCITY_ON_TAP
       }
@@ -154,15 +151,13 @@ const App = () => {
   }
 
   function animatePipesPosition() {
-    pipeX.value = withRepeat(
-      withSequence(
-        withTiming(PIPE_LEFT_EDGE, {
-          duration: ANIMATION_DURATION,
-          easing: Easing.linear
-        }),
-        withTiming(defaultPipePosX, { duration: 0 })
-      ),
-      -1
+    pipeX.value = withSequence(
+      withTiming(defaultPipePosX, { duration: 0 }),
+      withTiming(PIPE_LEFT_EDGE, {
+        duration: ANIMATION_DURATION / speedCoefficient.value,
+        easing: Easing.linear
+      }),
+      withTiming(defaultPipePosX, { duration: 0 })
     )
   }
 
@@ -191,6 +186,8 @@ const App = () => {
         previousValue >= PIPE_LEFT_EDGE
       ) {
         pipeYOffset.value = getRange(PIPE_START_RANGE, PIPE_END_RANGE)
+        cancelAnimation(pipeX)
+        runOnJS(animatePipesPosition)()
       }
 
       //Increase counter score on the edge
@@ -219,14 +216,12 @@ const App = () => {
       }
 
       //Pipes collision detection
+      const center = {
+        x: defaultBirdXPosition + BIRD_WIDTH / 2,
+        y: birdY.value + BIRD_HEIGHT / 2
+      }
       const isColliding = obstacles.value.some((rect) =>
-        isPointCollidingWithRect(
-          {
-            x: birdCenterX.value,
-            y: birdCenterY.value
-          },
-          rect
-        )
+        isPointCollidingWithRect(center, rect)
       )
       if (isColliding) {
         gameOver.value = true
@@ -238,7 +233,6 @@ const App = () => {
     () => gameOver.value,
     (currentValue, previousValue) => {
       if (currentValue && !previousValue) {
-        //TODO Check alert to user
         cancelAnimation(pipeX)
       }
     }
@@ -296,8 +290,6 @@ const App = () => {
                   height={BIRD_HEIGHT}
                 />
               </Group>
-              {/* <Circle cy={birdCenterY} cx={birdCenterX} r={15} color={'red'} /> */}
-
               {/* Score */}
               <Text
                 text={score.toString()}
