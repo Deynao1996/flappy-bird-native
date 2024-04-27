@@ -13,3 +13,7 @@ export const PIPE_LEFT_EDGE = -100
 
 export const PIPE_START_RANGE = -220
 export const PIPE_END_RANGE = 200
+
+//TODO Decide which gradient to use
+export const SCORE_GRADIENT_VIBRANT = ['#ffffff', '#fffa50']
+export const SCORE_GRADIENT_COOL = ['#ffffff', '#b2dffc']

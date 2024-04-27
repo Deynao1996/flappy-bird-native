@@ -5,7 +5,10 @@ import {
   Image,
   Group,
   Text,
-  matchFont
+  matchFont,
+  LinearGradient,
+  vec,
+  Fill
 } from '@shopify/react-native-skia'
 import { Platform, useWindowDimensions } from 'react-native'
 import {
@@ -38,6 +41,7 @@ import {
   PIPE_LEFT_EDGE,
   PIPE_START_RANGE,
   PIPE_WIDTH,
+  SCORE_GRADIENT_VIBRANT,
   VELOCITY_ON_TAP
 } from './store'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -45,6 +49,7 @@ import { StatusBar } from 'expo-status-bar'
 
 //TODO Center score text
 //TODO Check text color
+
 //TODO Check up border
 //TODO Check useState usage
 //TODO Check difficulty
@@ -120,6 +125,10 @@ const App = () => {
         y: topPipeY.value
       }
     ]
+  })
+  const centerScoreText = useDerivedValue(() => {
+    const textWidth = font.getTextWidth(score.toString())
+    return width / 2 - textWidth / 2
   })
 
   // Importing assets
@@ -293,10 +302,16 @@ const App = () => {
               {/* Score */}
               <Text
                 text={score.toString()}
-                x={width / 2 - 20}
+                x={centerScoreText}
                 y={100}
                 font={font}
-              />
+              >
+                <LinearGradient
+                  start={vec(0, 0)}
+                  end={vec(256, 256)}
+                  colors={SCORE_GRADIENT_VIBRANT}
+                />
+              </Text>
             </Canvas>
           </GestureDetector>
         </GestureHandlerRootView>
