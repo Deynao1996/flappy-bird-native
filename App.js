@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import {
   Canvas,
   useImage,
@@ -7,10 +7,9 @@ import {
   Text,
   matchFont,
   LinearGradient,
-  vec,
-  Fill
+  vec
 } from '@shopify/react-native-skia'
-import { Platform, useWindowDimensions } from 'react-native'
+import { Platform, View, useWindowDimensions } from 'react-native'
 import {
   useSharedValue,
   withTiming,
@@ -47,15 +46,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 
-//TODO Center score text
-//TODO Check text color
-
-//TODO Check up border
-//TODO Check useState usage
-//TODO Check difficulty
-//TODO Add sounds
 //TODO Refactor code
-//TODO Debug increased speed after gameOver
+//TODO Add sounds
 //TODO Check alert to user
 
 //Font settings
@@ -69,7 +61,6 @@ const font = matchFont(fontStyle)
 
 const App = () => {
   const { width, height } = useWindowDimensions()
-  const [score, setScore] = useState(0)
 
   //Default values
   const defaultPipePosX = width + 50
@@ -84,6 +75,12 @@ const App = () => {
   const pipeYOffset = useSharedValue(-30)
 
   //Derived values
+  const score = useSharedValue(0)
+  const textValue = useDerivedValue(() => score.value.toString())
+  const centerScoreText = useDerivedValue(() => {
+    const textWidth = font.getTextWidth(textValue.value)
+    return width / 2 - textWidth / 2
+  })
   const bottomPipeY = useDerivedValue(
     () => height - PIPE_HEIGHT / 2 + pipeYOffset.value - PIPE_BETWEEN_OFFSET
   )
@@ -91,7 +88,7 @@ const App = () => {
     () => pipeYOffset.value - PIPE_HEIGHT / 2 + PIPE_BETWEEN_OFFSET
   )
   const speedCoefficient = useDerivedValue(() => {
-    return interpolate(score, [0, 20], [1, 2])
+    return interpolate(score.value, [0, 20], [1, 2])
   })
   const birdTransform = useDerivedValue(() => {
     return [
@@ -126,10 +123,6 @@ const App = () => {
       }
     ]
   })
-  const centerScoreText = useDerivedValue(() => {
-    const textWidth = font.getTextWidth(score.toString())
-    return width / 2 - textWidth / 2
-  })
 
   // Importing assets
   const bg = useImage(require('./assets/sprites/background-night.png'))
@@ -146,8 +139,8 @@ const App = () => {
         birdYVelocity.value = 0
         gameOver.value = false
         pipeX.value = defaultPipePosX
+        score.value = 0
         runOnJS(animatePipesPosition)()
-        runOnJS(setScore)(0)
       } else {
         birdYVelocity.value = VELOCITY_ON_TAP
       }
@@ -207,7 +200,7 @@ const App = () => {
         currentValue <= edge &&
         previousValue > edge
       ) {
-        runOnJS(setScore)(score + 1)
+        score.value = score.value + 1
       }
     }
   )
@@ -300,12 +293,7 @@ const App = () => {
                 />
               </Group>
               {/* Score */}
-              <Text
-                text={score.toString()}
-                x={centerScoreText}
-                y={100}
-                font={font}
-              >
+              <Text text={textValue} x={centerScoreText} y={100} font={font}>
                 <LinearGradient
                   start={vec(0, 0)}
                   end={vec(256, 256)}
