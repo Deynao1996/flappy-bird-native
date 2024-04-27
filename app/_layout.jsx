@@ -42,7 +42,7 @@ import {
   PIPE_WIDTH,
   SCORE_GRADIENT_VIBRANT,
   VELOCITY_ON_TAP
-} from './store'
+} from '../constants/store'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 
@@ -125,11 +125,11 @@ const App = () => {
   })
 
   // Importing assets
-  const bg = useImage(require('./assets/sprites/background-night.png'))
-  const bird = useImage(require('./assets/sprites/yellowbird-upflap.png'))
-  const pipeBottom = useImage(require('./assets/sprites/pipe-bottom.png'))
-  const pipeTop = useImage(require('./assets/sprites/pipe-top.png'))
-  const baseGround = useImage(require('./assets/sprites/base.png'))
+  const bg = useImage(require('../assets/sprites/background-night.png'))
+  const bird = useImage(require('../assets/sprites/yellowbird-upflap.png'))
+  const pipeBottom = useImage(require('../assets/sprites/pipe-bottom.png'))
+  const pipeTop = useImage(require('../assets/sprites/pipe-top.png'))
+  const baseGround = useImage(require('../assets/sprites/base.png'))
 
   const gesture = useMemo(() => {
     return Gesture.Tap().onStart(() => {
