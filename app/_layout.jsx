@@ -47,8 +47,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import Ground from '../components/CanvasUI/Ground'
 import { getRange } from '../utils/utils'
+import { useSound } from '../hooks/useSound'
 
-//TODO Add sounds
 //TODO Check alert to user
 
 //Font settings
@@ -62,6 +62,20 @@ const font = matchFont(fontStyle)
 
 const App = () => {
   const { width, height } = useWindowDimensions()
+
+  // Importing visual assets
+  const bg = useImage(require('../assets/sprites/background-night.png'))
+  const bird = useImage(require('../assets/sprites/yellowbird-upflap.png'))
+  const pipeBottom = useImage(require('../assets/sprites/pipe-bottom.png'))
+  const pipeTop = useImage(require('../assets/sprites/pipe-top.png'))
+
+  // Importing audio assets
+  const { playSound: playHitSound } = useSound(
+    require('../assets/audio/hit.wav')
+  )
+  const { playSound: playPointSound } = useSound(
+    require('../assets/audio/point.wav')
+  )
 
   //Default values
   const defaultPipePosX = width + 50
@@ -124,12 +138,6 @@ const App = () => {
       }
     ]
   })
-
-  // Importing assets
-  const bg = useImage(require('../assets/sprites/background-night.png'))
-  const bird = useImage(require('../assets/sprites/yellowbird-upflap.png'))
-  const pipeBottom = useImage(require('../assets/sprites/pipe-bottom.png'))
-  const pipeTop = useImage(require('../assets/sprites/pipe-top.png'))
 
   const gesture = useMemo(() => {
     return Gesture.Tap().onStart(() => {
@@ -195,6 +203,7 @@ const App = () => {
         currentValue <= edge &&
         previousValue > edge
       ) {
+        runOnJS(playPointSound)()
         score.value = score.value + 1
       }
     }
@@ -209,6 +218,7 @@ const App = () => {
         currentValue > height - GROUND_HEIGHT / 2 - BIRD_HEIGHT ||
         currentValue < 0
       ) {
+        // runOnJS(playDieSound)()
         gameOver.value = true
       }
 
@@ -221,6 +231,7 @@ const App = () => {
         isPointCollidingWithRect(center, rect)
       )
       if (isColliding) {
+        // runOnJS(playHitSound)()
         gameOver.value = true
       }
     }
@@ -230,6 +241,7 @@ const App = () => {
     () => gameOver.value,
     (currentValue, previousValue) => {
       if (currentValue && !previousValue) {
+        runOnJS(playHitSound)()
         cancelAnimation(pipeX)
       }
     }
