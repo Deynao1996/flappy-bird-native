@@ -9,7 +9,7 @@ import {
   LinearGradient,
   vec
 } from '@shopify/react-native-skia'
-import { Platform, View, useWindowDimensions } from 'react-native'
+import { Platform, useWindowDimensions } from 'react-native'
 import {
   useSharedValue,
   withTiming,
@@ -45,8 +45,9 @@ import {
 } from '../constants/store'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
+import Ground from '../components/CanvasUI/Ground'
+import { getRange } from '../utils/utils'
 
-//TODO Refactor code
 //TODO Add sounds
 //TODO Check alert to user
 
@@ -129,7 +130,6 @@ const App = () => {
   const bird = useImage(require('../assets/sprites/yellowbird-upflap.png'))
   const pipeBottom = useImage(require('../assets/sprites/pipe-bottom.png'))
   const pipeTop = useImage(require('../assets/sprites/pipe-top.png'))
-  const baseGround = useImage(require('../assets/sprites/base.png'))
 
   const gesture = useMemo(() => {
     return Gesture.Tap().onStart(() => {
@@ -146,11 +146,6 @@ const App = () => {
       }
     })
   })
-
-  function getRange(min, max) {
-    'worklet'
-    return Math.random() * (max - min) + min
-  }
 
   function animatePipesPosition() {
     pipeX.value = withSequence(
@@ -271,17 +266,7 @@ const App = () => {
                 width={PIPE_WIDTH}
                 height={PIPE_HEIGHT}
               />
-
-              {/* Ground */}
-              <Image
-                image={baseGround}
-                fit={'cover'}
-                width={width}
-                height={GROUND_HEIGHT}
-                y={height - GROUND_HEIGHT / 2}
-                x={0}
-              />
-
+              <Ground width={width} height={height} />
               {/* Bird */}
               <Group transform={birdTransform} origin={birdOrigin}>
                 <Image
