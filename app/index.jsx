@@ -22,7 +22,8 @@ import {
   Extrapolation,
   useAnimatedReaction,
   runOnJS,
-  cancelAnimation
+  cancelAnimation,
+  withDelay
 } from 'react-native-reanimated'
 import {
   GestureHandlerRootView,
@@ -71,6 +72,9 @@ const App = () => {
   const pipeBottom = useImage(require('../assets/sprites/pipe-bottom.png'))
   const pipeTop = useImage(require('../assets/sprites/pipe-top.png'))
   const over = useImage(require('../assets/sprites/gameover.png'))
+  const one = useImage(require('../assets/sprites/1.png'))
+  const two = useImage(require('../assets/sprites/2.png'))
+  const three = useImage(require('../assets/sprites/3.png'))
 
   // Importing audio assets
   const { playSound: playHitSound } = useSound(
@@ -93,8 +97,11 @@ const App = () => {
   const birdY = useSharedValue(defaultBirdYPosition)
   const birdYVelocity = useSharedValue(0)
   const gameOver = useSharedValue(false)
+  const gameOnPause = useSharedValue(true)
   const pipeYOffset = useSharedValue(-30)
   const gameOverBannerOpacity = useSharedValue(0)
+  const countDownOverlayOpacity = useSharedValue(1)
+  const translateXCountdownCoefficient = useSharedValue(2)
 
   //Derived values
   const score = useSharedValue(0)
@@ -145,10 +152,13 @@ const App = () => {
       }
     ]
   })
+  const transformCountdown = useDerivedValue(() => {
+    return [{ translateX: -width * translateXCountdownCoefficient.value }]
+  })
 
   const gesture = useMemo(() => {
     return Gesture.Tap().onStart(() => {
-      if (gameOver.value) {
+      if (gameOver.value || gameOnPause.value) {
         //Restart game
       } else {
         birdYVelocity.value = VELOCITY_ON_TAP
@@ -184,7 +194,10 @@ const App = () => {
     pipeX.value = defaultPipePosX
     score.value = 0
     gameOverBannerOpacity.value = 0
-    animatePipesPosition()
+    countDownOverlayOpacity.value = 1
+    translateXCountdownCoefficient.value = 2
+    gameOnPause.value = true
+    countDown()
   }
 
   function returnToHomeScreen() {
@@ -209,9 +222,35 @@ const App = () => {
     }, timeout)
   }
 
+  function countDown() {
+    translateXCountdownCoefficient.value = withSequence(
+      withTiming(2, { duration: 1000 }),
+      withTiming(1, { duration: 1000 }),
+      withTiming(0, { duration: 1000 }),
+      withTiming(-1, { duration: 1000 })
+    )
+    countDownOverlayOpacity.value = withDelay(
+      3000,
+      withTiming(0, { duration: 1000 }, (isFinished) => {
+        if (isFinished) {
+          gameOnPause.value = false
+        }
+      })
+    )
+  }
+
   useEffect(() => {
-    animatePipesPosition()
+    countDown()
   }, [])
+
+  useAnimatedReaction(
+    () => gameOnPause.value,
+    (currentValue, previousValue) => {
+      if (!currentValue && previousValue) {
+        runOnJS(animatePipesPosition)()
+      }
+    }
+  )
 
   //Score detection
   useAnimatedReaction(
@@ -291,7 +330,7 @@ const App = () => {
   )
 
   useFrameCallback(({ timeSincePreviousFrame: dt }) => {
-    if (!dt || gameOver.value) return
+    if (!dt || gameOver.value || gameOnPause.value) return
     //Animate bird position
     birdY.value = birdY.value + birdYVelocity.value * dt * 0.001
     birdYVelocity.value = birdYVelocity.value + GRAVITY * dt * 0.001
@@ -341,6 +380,41 @@ const App = () => {
                   colors={SCORE_GRADIENT_VIBRANT}
                 />
               </Text>
+
+              {/* Countdown */}
+              <Rect
+                width={width}
+                height={height}
+                color={'#000000ad'}
+                opacity={countDownOverlayOpacity}
+              />
+
+              <Group transform={transformCountdown}>
+                <Image
+                  image={one}
+                  fit={'contain'}
+                  width={24}
+                  height={36}
+                  x={width / 2 - 12}
+                  y={height / 2 - 18}
+                />
+                <Image
+                  image={two}
+                  fit={'contain'}
+                  width={24}
+                  height={36}
+                  x={width / 2 - 12 + width}
+                  y={height / 2 - 18}
+                />
+                <Image
+                  image={three}
+                  fit={'contain'}
+                  width={24}
+                  height={36}
+                  x={width / 2 - 12 + width * 2}
+                  y={height / 2 - 18}
+                />
+              </Group>
 
               {/* Game Over Banner */}
               <Group opacity={gameOverBannerOpacity}>
