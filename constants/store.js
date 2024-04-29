@@ -17,3 +17,6 @@ export const PIPE_END_RANGE = 200
 //TODO Decide which gradient to use
 export const SCORE_GRADIENT_VIBRANT = ['#ffffff', '#fffa50']
 export const SCORE_GRADIENT_COOL = ['#ffffff', '#b2dffc']
+
+export const COUNTDOWN_WIDTH = 24
+export const COUNTDOWN_HEIGHT = 36

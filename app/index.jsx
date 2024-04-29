@@ -34,6 +34,8 @@ import {
   ANIMATION_DURATION,
   BIRD_HEIGHT,
   BIRD_WIDTH,
+  COUNTDOWN_HEIGHT,
+  COUNTDOWN_WIDTH,
   GRAVITY,
   GROUND_HEIGHT,
   PIPE_BETWEEN_OFFSET,
@@ -51,8 +53,8 @@ import Ground from '../components/CanvasUI/Ground'
 import { getRange } from '../utils/utils'
 import { useSound } from '../hooks/useSound'
 
-//TODO Check alert to user
 //TODO StatusBAr styling
+//TODO Add gifts
 
 //Font settings
 const fontFamily = Platform.select({ ios: 'Helvetica', default: 'sans-serif' })
@@ -65,6 +67,7 @@ const font = matchFont(fontStyle)
 
 const App = () => {
   const { width, height } = useWindowDimensions()
+  const overlayColor = '#000000ad'
 
   // Importing visual assets
   const bg = useImage(require('../assets/sprites/background-night.png'))
@@ -385,7 +388,7 @@ const App = () => {
               <Rect
                 width={width}
                 height={height}
-                color={'#000000ad'}
+                color={overlayColor}
                 opacity={countDownOverlayOpacity}
               />
 
@@ -393,26 +396,26 @@ const App = () => {
                 <Image
                   image={one}
                   fit={'contain'}
-                  width={24}
-                  height={36}
-                  x={width / 2 - 12}
-                  y={height / 2 - 18}
+                  width={COUNTDOWN_WIDTH}
+                  height={COUNTDOWN_HEIGHT}
+                  x={width / 2 - COUNTDOWN_WIDTH / 2}
+                  y={height / 2 - COUNTDOWN_HEIGHT / 2}
                 />
                 <Image
                   image={two}
                   fit={'contain'}
-                  width={24}
-                  height={36}
-                  x={width / 2 - 12 + width}
-                  y={height / 2 - 18}
+                  width={COUNTDOWN_WIDTH}
+                  height={COUNTDOWN_HEIGHT}
+                  x={width / 2 - COUNTDOWN_WIDTH / 2 + width}
+                  y={height / 2 - COUNTDOWN_HEIGHT / 2}
                 />
                 <Image
                   image={three}
                   fit={'contain'}
-                  width={24}
-                  height={36}
-                  x={width / 2 - 12 + width * 2}
-                  y={height / 2 - 18}
+                  width={COUNTDOWN_WIDTH}
+                  height={COUNTDOWN_HEIGHT}
+                  x={width / 2 - COUNTDOWN_WIDTH / 2 + width * 2}
+                  y={height / 2 - COUNTDOWN_HEIGHT / 2}
                 />
               </Group>
 
@@ -423,7 +426,7 @@ const App = () => {
                   y={0}
                   width={width}
                   height={height}
-                  color={'#000000ad'}
+                  color={overlayColor}
                 />
                 <Image
                   image={over}
