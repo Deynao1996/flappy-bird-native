@@ -35,6 +35,7 @@ import {
 } from 'react-native-gesture-handler'
 import {
   ANIMATION_DURATION,
+  APPEAR_GIFT_STEPS,
   BIRD_HEIGHT,
   BIRD_WIDTH,
   COUNTDOWN_HEIGHT,
@@ -131,6 +132,7 @@ const App = () => {
   const translateXCountdownCoefficient = useSharedValue(2)
   const giftScore = useSharedValue(0)
   const touchingWithGift = useSharedValue(false)
+  const giftOpacity = useSharedValue(0)
 
   //Derived values
   const scoreTextValue = useDerivedValue(() => score.value.toString())
@@ -221,7 +223,12 @@ const App = () => {
     })
   })
 
-  function animatePipesPosition() {
+  function changeGiftOpacity() {
+    const isOverlap = APPEAR_GIFT_STEPS.includes(scoreTextValue.value)
+    giftOpacity.value = isOverlap ? 1 : 0
+  }
+
+  function animateScene() {
     pipeX.value = withSequence(
       withTiming(defaultPipePosX, { duration: 0 }),
       withTiming(PIPE_LEFT_EDGE, {
@@ -230,6 +237,7 @@ const App = () => {
       }),
       withTiming(defaultPipePosX, { duration: 0 })
     )
+    changeGiftOpacity()
   }
 
   function isPointCollidingWithRect(point, rect) {
@@ -259,26 +267,51 @@ const App = () => {
     countDown()
   }
 
+  function resumeGame() {
+    gameOnPause.value = false
+  }
+
   function returnToHomeScreen() {
     //TODO Add return to home screen
     console.log('Return to home screen')
   }
 
-  function showScoreAlertAfterDelay(timeout = 1000) {
+  function showAlertAfterDelay({
+    delay = 1000,
+    playSound,
+    alertConfig,
+    title,
+    description
+  }) {
     setTimeout(() => {
-      playDieSound()
-      Alert.alert(
-        'Flight Finished! 🕊️',
-        `You've reached the end of your flight. But don't worry, you did great! \n\nYour final score is ${scoreTextValue.value}.`,
-        [
-          { text: 'Home', onPress: returnToHomeScreen },
-          {
-            text: 'Try Again',
-            onPress: restartGame
-          }
-        ]
-      )
-    }, timeout)
+      playSound?.()
+      Alert.alert(title, description, alertConfig)
+    }, delay)
+  }
+
+  function showScoreAlertAfterDelay() {
+    showAlertAfterDelay({
+      playSound: playDieSound,
+      title: 'Flight Finished! 🕊️',
+      description: `You've reached the end of your flight. But don't worry, you did great! \n\nYour final score is ${scoreTextValue.value}.`,
+      alertConfig: [
+        { text: 'Home', onPress: returnToHomeScreen },
+        {
+          text: 'Try Again',
+          onPress: restartGame
+        }
+      ]
+    })
+  }
+
+  function showGiftAlertAfterDelay() {
+    showAlertAfterDelay({
+      delay: 200,
+      title: 'Happy Birthday! 🎂',
+      description:
+        "Sending you the warmest wishes on your special day! May your birthday be filled with love, laughter, and all the things that make you smile. Here's to another amazing year ahead, filled with joy, success, and unforgettable moments. Happy Birthday!",
+      alertConfig: [{ text: 'Thanks', onPress: countDown }]
+    })
   }
 
   function countDown() {
@@ -306,7 +339,7 @@ const App = () => {
     () => gameOnPause.value,
     (currentValue, previousValue) => {
       if (!currentValue && previousValue) {
-        runOnJS(animatePipesPosition)()
+        runOnJS(animateScene)()
       }
     }
   )
@@ -323,7 +356,7 @@ const App = () => {
       ) {
         pipeYOffset.value = getRange(PIPE_START_RANGE, PIPE_END_RANGE)
         cancelAnimation(pipeX)
-        runOnJS(animatePipesPosition)()
+        runOnJS(animateScene)()
       }
 
       //Increase counter score on the edge
@@ -370,8 +403,9 @@ const App = () => {
         center,
         giftObstacles.value
       )
-      if (isCollidingWithGift) {
+      if (isCollidingWithGift && giftOpacity.value === 1) {
         touchingWithGift.value = true
+        giftOpacity.value = 0
       } else {
         touchingWithGift.value = false
       }
@@ -403,6 +437,28 @@ const App = () => {
           (isDone) => {
             if (isDone) {
               runOnJS(showScoreAlertAfterDelay)()
+            }
+          }
+        )
+      }
+    }
+  )
+
+  //Show gift message with Alert
+  useAnimatedReaction(
+    () => giftOpacity.value,
+    (currentValue, previousValue) => {
+      if (currentValue === 0 && previousValue === 1) {
+        //Pause game
+        // runOnJS(playHitSound)()
+        cancelAnimation(pipeX)
+        gameOnPause.value = true
+        countDownOverlayOpacity.value = withTiming(
+          1,
+          { duration: 200 },
+          (isDone) => {
+            if (isDone) {
+              runOnJS(showGiftAlertAfterDelay)()
             }
           }
         )
@@ -446,6 +502,7 @@ const App = () => {
               <Image
                 image={gift}
                 y={bottomGiftY}
+                opacity={giftOpacity}
                 x={pipeX}
                 width={PIPE_WIDTH}
                 height={PIPE_WIDTH}

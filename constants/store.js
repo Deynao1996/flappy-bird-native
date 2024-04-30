@@ -34,3 +34,5 @@ export const GIFT_SCORE_HEIGHT = 40
 export const TOTAL_GIFT_SCORE = 5
 
 export const SPEER_WIDTH = 70
+
+export const APPEAR_GIFT_STEPS = ['3', '8', '15', '20']
