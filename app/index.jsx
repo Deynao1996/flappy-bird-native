@@ -8,7 +8,10 @@ import {
   matchFont,
   LinearGradient,
   vec,
-  Rect
+  Rect,
+  rrect,
+  rect,
+  Box
 } from '@shopify/react-native-skia'
 import { Alert, Platform, useWindowDimensions } from 'react-native'
 import {
@@ -36,15 +39,26 @@ import {
   BIRD_WIDTH,
   COUNTDOWN_HEIGHT,
   COUNTDOWN_WIDTH,
+  GIFT_SCORE_HEIGHT,
+  GIFT_SCORE_WIDTH,
+  GIFT_SCORE_X,
+  GIFT_SCORE_Y,
   GRAVITY,
   GROUND_HEIGHT,
+  OVERLAY_COLOR,
   PIPE_BETWEEN_OFFSET,
   PIPE_END_RANGE,
   PIPE_HEIGHT,
   PIPE_LEFT_EDGE,
   PIPE_START_RANGE,
   PIPE_WIDTH,
+  SCORE_BOX_COLOR,
+  SCORE_BOX_RADIUS,
+  SCORE_BOX_WIDTH,
+  SCORE_GRADIENT_COOL,
   SCORE_GRADIENT_VIBRANT,
+  SCORE_Y,
+  TOTAL_GIFT_SCORE,
   VELOCITY_ON_TAP
 } from '../constants/store'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -55,19 +69,25 @@ import { useSound } from '../hooks/useSound'
 
 //TODO StatusBAr styling
 //TODO Add gifts
+//TODO Check speed k
 
 //Font settings
+const scoreFontSize = 40
 const fontFamily = Platform.select({ ios: 'Helvetica', default: 'sans-serif' })
-const fontStyle = {
+const scoreFontStyle = {
   fontFamily,
-  fontSize: 40,
+  fontSize: scoreFontSize,
   fontWeight: 'bold'
 }
-const font = matchFont(fontStyle)
+const giftFontStyle = {
+  fontFamily,
+  fontSize: 20
+}
+const scoreFont = matchFont(scoreFontStyle)
+const giftFont = matchFont(giftFontStyle)
 
 const App = () => {
   const { width, height } = useWindowDimensions()
-  const overlayColor = '#000000ad'
 
   // Importing visual assets
   const bg = useImage(require('../assets/sprites/background-night.png'))
@@ -78,6 +98,7 @@ const App = () => {
   const one = useImage(require('../assets/sprites/1.png'))
   const two = useImage(require('../assets/sprites/2.png'))
   const three = useImage(require('../assets/sprites/3.png'))
+  const gift = useImage(require('../assets/sprites/gift.png'))
 
   // Importing audio assets
   const { playSound: playHitSound } = useSound(
@@ -96,6 +117,7 @@ const App = () => {
   const defaultBirdXPosition = width / 4
 
   //Animated values
+  const score = useSharedValue(0)
   const pipeX = useSharedValue(defaultPipePosX)
   const birdY = useSharedValue(defaultBirdYPosition)
   const birdYVelocity = useSharedValue(0)
@@ -105,19 +127,35 @@ const App = () => {
   const gameOverBannerOpacity = useSharedValue(0)
   const countDownOverlayOpacity = useSharedValue(1)
   const translateXCountdownCoefficient = useSharedValue(2)
+  const giftScore = useSharedValue(0)
 
   //Derived values
-  const score = useSharedValue(0)
-  const textValue = useDerivedValue(() => score.value.toString())
-  const centerScoreText = useDerivedValue(() => {
-    const textWidth = font.getTextWidth(textValue.value)
-    return width / 2 - textWidth / 2
+  const scoreTextValue = useDerivedValue(() => score.value.toString())
+  const scoreWidth = useDerivedValue(() =>
+    scoreFont.getTextWidth(scoreTextValue.value)
+  )
+  const centerScoreText = useDerivedValue(
+    () => width / 2 - scoreWidth.value / 2
+  )
+  const giftScoreValue = useDerivedValue(
+    () => giftScore.value.toString() + ' / ' + TOTAL_GIFT_SCORE.toString()
+  )
+  const giftScoreWidth = useDerivedValue(() => {
+    return giftFont.getTextWidth(giftScoreValue.value) + 25
+  })
+
+  const centerScoreBox = useDerivedValue(() => {
+    const k = score.value >= 10 ? 15 : -10
+    return centerScoreText.value - scoreWidth.value / 2 + k
   })
   const bottomPipeY = useDerivedValue(
     () => height - PIPE_HEIGHT / 2 + pipeYOffset.value - PIPE_BETWEEN_OFFSET
   )
   const topPipeY = useDerivedValue(
     () => pipeYOffset.value - PIPE_HEIGHT / 2 + PIPE_BETWEEN_OFFSET
+  )
+  const bottomGiftY = useDerivedValue(
+    () => bottomPipeY.value - PIPE_BETWEEN_OFFSET - PIPE_WIDTH / 3
   )
   const speedCoefficient = useDerivedValue(() => {
     return interpolate(score.value, [0, 20], [1, 2])
@@ -213,7 +251,7 @@ const App = () => {
       playDieSound()
       Alert.alert(
         'Flight Finished! 🕊️',
-        `You've reached the end of your flight. But don't worry, you did great! \n\nYour final score is ${textValue.value}.`,
+        `You've reached the end of your flight. But don't worry, you did great! \n\nYour final score is ${scoreTextValue.value}.`,
         [
           { text: 'Home', onPress: returnToHomeScreen },
           {
@@ -364,6 +402,14 @@ const App = () => {
                 width={PIPE_WIDTH}
                 height={PIPE_HEIGHT}
               />
+              {/* GIFT */}
+              <Image
+                image={gift}
+                y={bottomGiftY}
+                x={pipeX}
+                width={PIPE_WIDTH}
+                height={PIPE_WIDTH}
+              />
               <Ground width={width} height={height} />
               {/* Bird */}
               <Group transform={birdTransform} origin={birdOrigin}>
@@ -375,20 +421,74 @@ const App = () => {
                   height={BIRD_HEIGHT}
                 />
               </Group>
-              {/* Score */}
-              <Text text={textValue} x={centerScoreText} y={100} font={font}>
-                <LinearGradient
-                  start={vec(0, 0)}
-                  end={vec(256, 256)}
-                  colors={SCORE_GRADIENT_VIBRANT}
+              {/* GIFT SCORE */}
+              <Group>
+                <Box
+                  box={rrect(
+                    rect(
+                      GIFT_SCORE_X,
+                      GIFT_SCORE_WIDTH / 2 -
+                        GIFT_SCORE_HEIGHT / 2 -
+                        GIFT_SCORE_Y,
+                      GIFT_SCORE_WIDTH,
+                      GIFT_SCORE_HEIGHT
+                    ),
+                    SCORE_BOX_RADIUS / 2,
+                    SCORE_BOX_RADIUS / 2
+                  )}
+                  color={SCORE_BOX_COLOR}
                 />
-              </Text>
+                <Text text={giftScoreValue} x={20} y={50} font={giftFont}>
+                  <LinearGradient
+                    start={vec(0, 0)}
+                    end={vec(256, 256)}
+                    colors={SCORE_GRADIENT_COOL}
+                  />
+                </Text>
+                <Image
+                  image={gift}
+                  y={20 + PIPE_WIDTH / 1.5 / 6}
+                  x={giftScoreWidth}
+                  width={PIPE_WIDTH / 1.5}
+                  height={PIPE_WIDTH / 1.5}
+                  fit={'contain'}
+                />
+              </Group>
+
+              {/* Score */}
+              <Group>
+                <Box
+                  box={rrect(
+                    rect(
+                      centerScoreBox.value,
+                      SCORE_Y - SCORE_Y / 2 + 28,
+                      SCORE_BOX_WIDTH,
+                      SCORE_BOX_WIDTH
+                    ),
+                    SCORE_BOX_RADIUS,
+                    SCORE_BOX_RADIUS
+                  )}
+                  color={SCORE_BOX_COLOR}
+                />
+                <Text
+                  text={scoreTextValue}
+                  x={centerScoreText}
+                  y={SCORE_Y}
+                  font={scoreFont}
+                >
+                  <LinearGradient
+                    start={vec(0, 0)}
+                    end={vec(256, 256)}
+                    colors={SCORE_GRADIENT_VIBRANT}
+                  />
+                </Text>
+              </Group>
 
               {/* Countdown */}
               <Rect
                 width={width}
                 height={height}
-                color={overlayColor}
+                color={OVERLAY_COLOR}
                 opacity={countDownOverlayOpacity}
               />
 
@@ -426,7 +526,7 @@ const App = () => {
                   y={0}
                   width={width}
                   height={height}
-                  color={overlayColor}
+                  color={OVERLAY_COLOR}
                 />
                 <Image
                   image={over}
