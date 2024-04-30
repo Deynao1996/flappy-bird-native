@@ -32,3 +32,5 @@ export const GIFT_SCORE_Y = 5
 export const GIFT_SCORE_WIDTH = 100
 export const GIFT_SCORE_HEIGHT = 40
 export const TOTAL_GIFT_SCORE = 5
+
+export const SPEER_WIDTH = 70

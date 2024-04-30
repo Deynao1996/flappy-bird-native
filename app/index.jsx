@@ -58,6 +58,7 @@ import {
   SCORE_GRADIENT_COOL,
   SCORE_GRADIENT_VIBRANT,
   SCORE_Y,
+  SPEER_WIDTH,
   TOTAL_GIFT_SCORE,
   VELOCITY_ON_TAP
 } from '../constants/store'
@@ -70,6 +71,7 @@ import { useSound } from '../hooks/useSound'
 //TODO StatusBAr styling
 //TODO Add gifts
 //TODO Check speed k
+//TODO Ground speed
 
 //Font settings
 const scoreFontSize = 40
@@ -116,7 +118,7 @@ const App = () => {
   const defaultBirdYPosition = height / 3
   const defaultBirdXPosition = width / 4
 
-  //Animated values
+  //Shared values
   const score = useSharedValue(0)
   const pipeX = useSharedValue(defaultPipePosX)
   const birdY = useSharedValue(defaultBirdYPosition)
@@ -128,6 +130,7 @@ const App = () => {
   const countDownOverlayOpacity = useSharedValue(1)
   const translateXCountdownCoefficient = useSharedValue(2)
   const giftScore = useSharedValue(0)
+  const touchingWithGift = useSharedValue(false)
 
   //Derived values
   const scoreTextValue = useDerivedValue(() => score.value.toString())
@@ -158,7 +161,10 @@ const App = () => {
     () => bottomPipeY.value - PIPE_BETWEEN_OFFSET - PIPE_WIDTH / 3
   )
   const speedCoefficient = useDerivedValue(() => {
-    return interpolate(score.value, [0, 20], [1, 2])
+    return interpolate(score.value, [0, 20], [1, 2], Extrapolation.CLAMP)
+  })
+  const speedTextValue = useDerivedValue(() => {
+    return 'x' + speedCoefficient.value.toFixed(1).toString()
   })
   const birdTransform = useDerivedValue(() => {
     return [
@@ -176,7 +182,7 @@ const App = () => {
     x: defaultBirdXPosition + BIRD_WIDTH / 2,
     y: birdY.value + BIRD_HEIGHT / 2
   }))
-  const obstacles = useDerivedValue(() => {
+  const pipesObstacles = useDerivedValue(() => {
     const defaultSettings = {
       x: pipeX.value,
       h: PIPE_HEIGHT,
@@ -192,6 +198,14 @@ const App = () => {
         y: topPipeY.value
       }
     ]
+  })
+  const giftObstacles = useDerivedValue(() => {
+    return {
+      x: pipeX.value,
+      h: PIPE_WIDTH,
+      w: PIPE_WIDTH,
+      y: bottomGiftY.value
+    }
   })
   const transformCountdown = useDerivedValue(() => {
     return [{ translateX: -width * translateXCountdownCoefficient.value }]
@@ -236,6 +250,10 @@ const App = () => {
     score.value = 0
     gameOverBannerOpacity.value = 0
     countDownOverlayOpacity.value = 1
+
+    //TODO Think about restart
+    giftScore.value = 0
+
     translateXCountdownCoefficient.value = 2
     gameOnPause.value = true
     countDown()
@@ -340,12 +358,34 @@ const App = () => {
         x: defaultBirdXPosition + BIRD_WIDTH / 2,
         y: birdY.value + BIRD_HEIGHT / 2
       }
-      const isColliding = obstacles.value.some((rect) =>
+      const isCollidingWithPipes = pipesObstacles.value.some((rect) =>
         isPointCollidingWithRect(center, rect)
       )
-      if (isColliding) {
-        // runOnJS(playHitSound)()
+      if (isCollidingWithPipes) {
         gameOver.value = true
+      }
+
+      //Gift collision detection
+      const isCollidingWithGift = isPointCollidingWithRect(
+        center,
+        giftObstacles.value
+      )
+      if (isCollidingWithGift) {
+        touchingWithGift.value = true
+      } else {
+        touchingWithGift.value = false
+      }
+    }
+  )
+
+  //Gift score increase
+  useAnimatedReaction(
+    () => touchingWithGift.value,
+    (currentValue, previousValue) => {
+      if (!previousValue && currentValue) {
+        if (giftScore.value >= TOTAL_GIFT_SCORE) return
+
+        giftScore.value = giftScore.value + 1
       }
     }
   )
@@ -453,6 +493,37 @@ const App = () => {
                   height={PIPE_WIDTH / 1.5}
                   fit={'contain'}
                 />
+              </Group>
+
+              {/* SPEEDOMETER */}
+              <Group>
+                <Box
+                  box={rrect(
+                    rect(
+                      width - GIFT_SCORE_X - SPEER_WIDTH,
+                      GIFT_SCORE_WIDTH / 2 -
+                        GIFT_SCORE_HEIGHT / 2 -
+                        GIFT_SCORE_Y,
+                      SPEER_WIDTH,
+                      GIFT_SCORE_HEIGHT
+                    ),
+                    SCORE_BOX_RADIUS / 2,
+                    SCORE_BOX_RADIUS / 2
+                  )}
+                  color={SCORE_BOX_COLOR}
+                />
+                <Text
+                  text={speedTextValue}
+                  x={width - SPEER_WIDTH + GIFT_SCORE_X}
+                  y={50}
+                  font={giftFont}
+                >
+                  <LinearGradient
+                    start={vec(0, 0)}
+                    end={vec(256, 256)}
+                    colors={SCORE_GRADIENT_COOL}
+                  />
+                </Text>
               </Group>
 
               {/* Score */}
