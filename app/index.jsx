@@ -66,14 +66,12 @@ import {
 } from '../constants/store'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
-import Ground from '../components/CanvasUI/Ground'
 import { getRange } from '../utils/utils'
 import { useSound } from '../hooks/useSound'
 import { withPause } from 'react-native-redash'
 
 //TODO StatusBAr styling
 //TODO Check modal
-//TODO Ground speed
 
 //Font settings
 const scoreFontSize = 40
@@ -103,6 +101,7 @@ const App = () => {
   const two = useImage(require('../assets/sprites/2.png'))
   const three = useImage(require('../assets/sprites/3.png'))
   const gift = useImage(require('../assets/sprites/gift.png'))
+  const baseGround = useImage(require('../assets/sprites/base.png'))
 
   // Importing audio assets
   const { playSound: playHitSound } = useSound(
@@ -138,6 +137,7 @@ const App = () => {
   const giftScore = useSharedValue(0)
   const touchingWithGift = useSharedValue(false)
   const giftOpacity = useSharedValue(0)
+  const groundSecondHalfX = useSharedValue(0)
 
   //Derived values
   const scoreTextValue = useDerivedValue(() => score.value.toString())
@@ -158,6 +158,9 @@ const App = () => {
     const k = score.value >= 10 ? 15 : -10
     return centerScoreText.value - scoreWidth.value / 2 + k
   })
+  const groundFirstHalfX = useDerivedValue(
+    () => groundSecondHalfX.value + width
+  )
   const bottomPipeY = useDerivedValue(
     () => height - PIPE_HEIGHT / 2 + pipeYOffset.value - PIPE_BETWEEN_OFFSET
   )
@@ -234,6 +237,7 @@ const App = () => {
   }
 
   function animateScene() {
+    //Animate pipes
     pipeX.value = withPause(
       withSequence(
         withTiming(defaultPipePosX, { duration: 0 }),
@@ -245,6 +249,20 @@ const App = () => {
       ),
       gameOnPause
     )
+
+    //Animate ground
+    groundSecondHalfX.value = withPause(
+      withSequence(
+        withTiming(0, { duration: 0 }),
+        withTiming(-width, {
+          duration: ANIMATION_DURATION / speedCoefficient.value,
+          easing: Easing.linear
+        }),
+        withTiming(0, { duration: 0 })
+      ),
+      gameOnPause
+    )
+
     changeGiftOpacity()
   }
 
@@ -364,6 +382,7 @@ const App = () => {
       ) {
         pipeYOffset.value = getRange(PIPE_START_RANGE, PIPE_END_RANGE)
         cancelAnimation(pipeX)
+        cancelAnimation(groundSecondHalfX)
         runOnJS(animateScene)()
       }
 
@@ -449,6 +468,7 @@ const App = () => {
         //End game
         runOnJS(playHitSound)()
         cancelAnimation(pipeX)
+        cancelAnimation(groundSecondHalfX)
         gameOverBannerOpacity.value = withTiming(
           1,
           { duration: 200 },
@@ -503,7 +523,26 @@ const App = () => {
                 width={PIPE_WIDTH}
                 height={PIPE_WIDTH}
               />
-              <Ground width={width} height={height} />
+              {/* GROUND */}
+              <Group>
+                <Image
+                  image={baseGround}
+                  fit={'cover'}
+                  width={width}
+                  height={GROUND_HEIGHT}
+                  y={height - GROUND_HEIGHT / 2}
+                  x={groundFirstHalfX}
+                />
+                <Image
+                  image={baseGround}
+                  fit={'cover'}
+                  width={width}
+                  height={GROUND_HEIGHT}
+                  y={height - GROUND_HEIGHT / 2}
+                  x={groundSecondHalfX}
+                />
+              </Group>
+
               {/* Bird */}
               <Group transform={birdTransform} origin={birdOrigin}>
                 <Image
