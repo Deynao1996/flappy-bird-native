@@ -44,6 +44,7 @@ import {
   GIFT_SCORE_WIDTH,
   GIFT_SCORE_X,
   GIFT_SCORE_Y,
+  GIFT_WISHES,
   GRAVITY,
   GROUND_HEIGHT,
   OVERLAY_COLOR,
@@ -68,10 +69,10 @@ import { StatusBar } from 'expo-status-bar'
 import Ground from '../components/CanvasUI/Ground'
 import { getRange } from '../utils/utils'
 import { useSound } from '../hooks/useSound'
+import { withPause } from 'react-native-redash'
 
 //TODO StatusBAr styling
-//TODO Add gifts
-//TODO Check speed k
+//TODO Check modal
 //TODO Ground speed
 
 //Font settings
@@ -113,6 +114,9 @@ const App = () => {
   const { playSound: playDieSound } = useSound(
     require('../assets/audio/die.wav')
   )
+  const { playSound: playGiftSuccess } = useSound(
+    require('../assets/audio/success.wav')
+  )
 
   //Default values
   const defaultPipePosX = width + 50
@@ -125,7 +129,8 @@ const App = () => {
   const birdY = useSharedValue(defaultBirdYPosition)
   const birdYVelocity = useSharedValue(0)
   const gameOver = useSharedValue(false)
-  const gameOnPause = useSharedValue(true)
+  const gameOnStop = useSharedValue(true)
+  const gameOnPause = useSharedValue(false)
   const pipeYOffset = useSharedValue(-30)
   const gameOverBannerOpacity = useSharedValue(0)
   const countDownOverlayOpacity = useSharedValue(1)
@@ -145,9 +150,9 @@ const App = () => {
   const giftScoreValue = useDerivedValue(
     () => giftScore.value.toString() + ' / ' + TOTAL_GIFT_SCORE.toString()
   )
-  const giftScoreWidth = useDerivedValue(() => {
-    return giftFont.getTextWidth(giftScoreValue.value) + 25
-  })
+  const giftScoreWidth = useDerivedValue(
+    () => giftFont.getTextWidth(giftScoreValue.value) + 25
+  )
 
   const centerScoreBox = useDerivedValue(() => {
     const k = score.value >= 10 ? 15 : -10
@@ -162,12 +167,12 @@ const App = () => {
   const bottomGiftY = useDerivedValue(
     () => bottomPipeY.value - PIPE_BETWEEN_OFFSET - PIPE_WIDTH / 3
   )
-  const speedCoefficient = useDerivedValue(() => {
-    return interpolate(score.value, [0, 20], [1, 2], Extrapolation.CLAMP)
-  })
-  const speedTextValue = useDerivedValue(() => {
-    return 'x' + speedCoefficient.value.toFixed(1).toString()
-  })
+  const speedCoefficient = useDerivedValue(() =>
+    interpolate(score.value, [0, 20], [1, 2], Extrapolation.CLAMP)
+  )
+  const speedTextValue = useDerivedValue(
+    () => 'x' + speedCoefficient.value.toFixed(1).toString()
+  )
   const birdTransform = useDerivedValue(() => {
     return [
       {
@@ -215,7 +220,7 @@ const App = () => {
 
   const gesture = useMemo(() => {
     return Gesture.Tap().onStart(() => {
-      if (gameOver.value || gameOnPause.value) {
+      if (gameOver.value || gameOnStop.value) {
         //Restart game
       } else {
         birdYVelocity.value = VELOCITY_ON_TAP
@@ -229,13 +234,16 @@ const App = () => {
   }
 
   function animateScene() {
-    pipeX.value = withSequence(
-      withTiming(defaultPipePosX, { duration: 0 }),
-      withTiming(PIPE_LEFT_EDGE, {
-        duration: ANIMATION_DURATION / speedCoefficient.value,
-        easing: Easing.linear
-      }),
-      withTiming(defaultPipePosX, { duration: 0 })
+    pipeX.value = withPause(
+      withSequence(
+        withTiming(defaultPipePosX, { duration: 0 }),
+        withTiming(PIPE_LEFT_EDGE, {
+          duration: ANIMATION_DURATION / speedCoefficient.value,
+          easing: Easing.linear
+        }),
+        withTiming(defaultPipePosX, { duration: 0 })
+      ),
+      gameOnPause
     )
     changeGiftOpacity()
   }
@@ -263,17 +271,17 @@ const App = () => {
     giftScore.value = 0
 
     translateXCountdownCoefficient.value = 2
-    gameOnPause.value = true
-    countDown()
-  }
-
-  function resumeGame() {
-    gameOnPause.value = false
+    gameOnStop.value = true
+    countDown(() => (gameOnStop.value = false))
   }
 
   function returnToHomeScreen() {
     //TODO Add return to home screen
     console.log('Return to home screen')
+  }
+
+  function handleThanks() {
+    countDown(() => (gameOnPause.value = false))
   }
 
   function showAlertAfterDelay({
@@ -305,16 +313,16 @@ const App = () => {
   }
 
   function showGiftAlertAfterDelay() {
+    playGiftSuccess()
+    const currentWishedContent = GIFT_WISHES[giftScore.value - 1]
     showAlertAfterDelay({
       delay: 200,
-      title: 'Happy Birthday! 🎂',
-      description:
-        "Sending you the warmest wishes on your special day! May your birthday be filled with love, laughter, and all the things that make you smile. Here's to another amazing year ahead, filled with joy, success, and unforgettable moments. Happy Birthday!",
-      alertConfig: [{ text: 'Thanks', onPress: countDown }]
+      ...currentWishedContent,
+      alertConfig: [{ text: 'Thanks', onPress: handleThanks }]
     })
   }
 
-  function countDown() {
+  function countDown(onFinish) {
     translateXCountdownCoefficient.value = withSequence(
       withTiming(2, { duration: 1000 }),
       withTiming(1, { duration: 1000 }),
@@ -325,18 +333,18 @@ const App = () => {
       3000,
       withTiming(0, { duration: 1000 }, (isFinished) => {
         if (isFinished) {
-          gameOnPause.value = false
+          runOnJS(onFinish)()
         }
       })
     )
   }
 
   useEffect(() => {
-    countDown()
+    countDown(() => (gameOnStop.value = false))
   }, [])
 
   useAnimatedReaction(
-    () => gameOnPause.value,
+    () => gameOnStop.value,
     (currentValue, previousValue) => {
       if (!currentValue && previousValue) {
         runOnJS(animateScene)()
@@ -420,6 +428,16 @@ const App = () => {
         if (giftScore.value >= TOTAL_GIFT_SCORE) return
 
         giftScore.value = giftScore.value + 1
+        gameOnPause.value = true
+        countDownOverlayOpacity.value = withTiming(
+          1,
+          { duration: 200 },
+          (isDone) => {
+            if (isDone) {
+              runOnJS(showGiftAlertAfterDelay)()
+            }
+          }
+        )
       }
     }
   )
@@ -444,30 +462,8 @@ const App = () => {
     }
   )
 
-  //Show gift message with Alert
-  useAnimatedReaction(
-    () => giftOpacity.value,
-    (currentValue, previousValue) => {
-      if (currentValue === 0 && previousValue === 1) {
-        //Pause game
-        // runOnJS(playHitSound)()
-        cancelAnimation(pipeX)
-        gameOnPause.value = true
-        countDownOverlayOpacity.value = withTiming(
-          1,
-          { duration: 200 },
-          (isDone) => {
-            if (isDone) {
-              runOnJS(showGiftAlertAfterDelay)()
-            }
-          }
-        )
-      }
-    }
-  )
-
   useFrameCallback(({ timeSincePreviousFrame: dt }) => {
-    if (!dt || gameOver.value || gameOnPause.value) return
+    if (!dt || gameOver.value || gameOnStop.value || gameOnPause.value) return
     //Animate bird position
     birdY.value = birdY.value + birdYVelocity.value * dt * 0.001
     birdYVelocity.value = birdYVelocity.value + GRAVITY * dt * 0.001
