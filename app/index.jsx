@@ -35,9 +35,14 @@ import {
 } from 'react-native-gesture-handler'
 import {
   ANIMATION_DURATION,
+  APPEAR_COPTER_STEPS,
   APPEAR_GIFT_STEPS,
   BIRD_HEIGHT,
   BIRD_WIDTH,
+  COPTER_ANIMATION_DURATION,
+  COPTER_HEIGHT,
+  COPTER_LEFT_EDGE,
+  COPTER_WIDTH,
   COUNTDOWN_HEIGHT,
   COUNTDOWN_WIDTH,
   GIFT_SCORE_HEIGHT,
@@ -70,8 +75,10 @@ import { getRange } from '../utils/utils'
 import { useSound } from '../hooks/useSound'
 import { withPause } from 'react-native-redash'
 
-//TODO StatusBAr styling
-//TODO Check modal
+//TODO Add copter score
+//TODO Add copter destroy shout
+//TODO Change final score message
+//TODO Recreate copter array after restart
 
 //Font settings
 const scoreFontSize = 40
@@ -93,7 +100,7 @@ const App = () => {
 
   // Importing visual assets
   const bg = useImage(require('../assets/sprites/background-night.png'))
-  const bird = useImage(require('../assets/sprites/yellowbird-upflap.png'))
+  const bird = useImage(require('../assets/sprites/missile.png'))
   const pipeBottom = useImage(require('../assets/sprites/pipe-bottom.png'))
   const pipeTop = useImage(require('../assets/sprites/pipe-top.png'))
   const over = useImage(require('../assets/sprites/gameover.png'))
@@ -102,6 +109,8 @@ const App = () => {
   const three = useImage(require('../assets/sprites/3.png'))
   const gift = useImage(require('../assets/sprites/gift.png'))
   const baseGround = useImage(require('../assets/sprites/base.png'))
+  const boom = useImage(require('../assets/sprites/boom.png'))
+  const copter = useImage(require('../assets/sprites/plane.png'))
 
   // Importing audio assets
   const { playSound: playHitSound } = useSound(
@@ -121,6 +130,7 @@ const App = () => {
   const defaultPipePosX = width + 50
   const defaultBirdYPosition = height / 3
   const defaultBirdXPosition = width / 4
+  const defaultCopterX = width + 200
 
   //Shared values
   const score = useSharedValue(0)
@@ -138,6 +148,10 @@ const App = () => {
   const touchingWithGift = useSharedValue(false)
   const giftOpacity = useSharedValue(0)
   const groundSecondHalfX = useSharedValue(0)
+  const boomOpacity = useSharedValue(0)
+  const copterOpacity = useSharedValue(0)
+  const copterScore = useSharedValue(0)
+  const touchingWithCopterValue = useSharedValue(false)
 
   //Derived values
   const scoreTextValue = useDerivedValue(() => score.value.toString())
@@ -221,6 +235,31 @@ const App = () => {
     return [{ translateX: -width * translateXCountdownCoefficient.value }]
   })
 
+  const boomScale = useDerivedValue(() => {
+    return [
+      {
+        scale: interpolate(boomOpacity.value, [0, 1], [1, 2])
+      },
+      {
+        rotate: interpolate(boomOpacity.value, [0, 1], [-1.5, 0])
+      }
+    ]
+  })
+
+  const copterX = useSharedValue(defaultPipePosX)
+  const copterOrigin = useDerivedValue(() => ({
+    x: copterX.value + COPTER_WIDTH / 2,
+    y: bottomGiftY.value + COPTER_HEIGHT / 2
+  }))
+  const copterObstacles = useDerivedValue(() => {
+    return {
+      x: copterX.value,
+      h: COPTER_HEIGHT,
+      w: COPTER_WIDTH,
+      y: bottomGiftY.value
+    }
+  })
+
   const gesture = useMemo(() => {
     return Gesture.Tap().onStart(() => {
       if (gameOver.value || gameOnStop.value) {
@@ -231,9 +270,29 @@ const App = () => {
     })
   })
 
-  function changeGiftOpacity() {
-    const isOverlap = APPEAR_GIFT_STEPS.includes(scoreTextValue.value)
-    giftOpacity.value = isOverlap ? 1 : 0
+  function animateCopter() {
+    console.log('animating')
+    copterOpacity.value = 1
+    copterX.value = withPause(
+      withSequence(
+        withTiming(defaultCopterX, { duration: 0 }),
+        withTiming(COPTER_LEFT_EDGE, {
+          duration: COPTER_ANIMATION_DURATION / speedCoefficient.value,
+          easing: Easing.linear
+        }),
+        withTiming(defaultCopterX, { duration: 0 })
+      ),
+      gameOnPause
+    )
+  }
+
+  function changeOpacityWithOverlap(stepsArr, targetValue) {
+    const isOverlap = stepsArr.includes(scoreTextValue.value)
+    if (isOverlap) {
+      targetValue.value = 1
+    } else {
+      targetValue.value = 0
+    }
   }
 
   function animateScene() {
@@ -263,7 +322,21 @@ const App = () => {
       gameOnPause
     )
 
-    changeGiftOpacity()
+    // Animate copter
+    copterX.value = withPause(
+      withSequence(
+        withTiming(defaultCopterX, { duration: 0 }),
+        withTiming(COPTER_LEFT_EDGE, {
+          duration: COPTER_ANIMATION_DURATION / speedCoefficient.value,
+          easing: Easing.linear
+        }),
+        withTiming(defaultCopterX, { duration: 0 })
+      ),
+      gameOnPause
+    )
+
+    changeOpacityWithOverlap(APPEAR_GIFT_STEPS, giftOpacity)
+    changeOpacityWithOverlap(APPEAR_COPTER_STEPS, copterOpacity)
   }
 
   function isPointCollidingWithRect(point, rect) {
@@ -284,6 +357,8 @@ const App = () => {
     score.value = 0
     gameOverBannerOpacity.value = 0
     countDownOverlayOpacity.value = 1
+    boomOpacity.value = 0
+    copterX.value = defaultCopterX
 
     //TODO Think about restart
     giftScore.value = 0
@@ -382,6 +457,7 @@ const App = () => {
       ) {
         pipeYOffset.value = getRange(PIPE_START_RANGE, PIPE_END_RANGE)
         cancelAnimation(pipeX)
+        cancelAnimation(copterX)
         cancelAnimation(groundSecondHalfX)
         runOnJS(animateScene)()
       }
@@ -436,6 +512,18 @@ const App = () => {
       } else {
         touchingWithGift.value = false
       }
+
+      //Copter collision
+      const isCopterCollision = isPointCollidingWithRect(
+        center,
+        copterObstacles.value
+      )
+      if (isCopterCollision && copterOpacity.value === 1) {
+        touchingWithCopterValue.value = true
+        copterOpacity.value = 0
+      } else {
+        touchingWithCopterValue.value = false
+      }
     }
   )
 
@@ -461,6 +549,20 @@ const App = () => {
     }
   )
 
+  //Copter score increase
+  useAnimatedReaction(
+    () => touchingWithCopterValue.value,
+    (currentValue, previousValue) => {
+      if (!previousValue && currentValue) {
+        runOnJS(playHitSound)()
+        copterScore.value = copterScore.value + 1
+        boomOpacity.value = withTiming(1.6, { duration: 300 }, (isFinish) => {
+          if (isFinish) boomOpacity.value = 0
+        })
+      }
+    }
+  )
+
   useAnimatedReaction(
     () => gameOver.value,
     (currentValue, previousValue) => {
@@ -468,7 +570,9 @@ const App = () => {
         //End game
         runOnJS(playHitSound)()
         cancelAnimation(pipeX)
+        cancelAnimation(copterX)
         cancelAnimation(groundSecondHalfX)
+        boomOpacity.value = withTiming(1, { duration: 100 })
         gameOverBannerOpacity.value = withTiming(
           1,
           { duration: 200 },
@@ -552,7 +656,30 @@ const App = () => {
                   width={BIRD_WIDTH}
                   height={BIRD_HEIGHT}
                 />
+                <Group origin={birdOrigin} transform={boomScale}>
+                  <Image
+                    image={boom}
+                    y={birdY}
+                    x={defaultBirdXPosition}
+                    width={BIRD_WIDTH}
+                    height={BIRD_HEIGHT}
+                    opacity={boomOpacity}
+                  />
+                </Group>
               </Group>
+
+              {/* COPTER */}
+              <Group origin={copterOrigin} transform={[{ rotate: -0.25 }]}>
+                <Image
+                  image={copter}
+                  y={bottomGiftY}
+                  x={copterX}
+                  opacity={copterOpacity}
+                  width={COPTER_WIDTH}
+                  height={COPTER_HEIGHT}
+                />
+              </Group>
+
               {/* GIFT SCORE */}
               <Group>
                 <Box

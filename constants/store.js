@@ -1,20 +1,21 @@
-export const BIRD_WIDTH = 32
-export const BIRD_HEIGHT = 24
+export const BIRD_WIDTH = 42
+export const BIRD_HEIGHT = 34
 export const PIPE_WIDTH = 52
 export const PIPE_HEIGHT = 562
 export const GROUND_HEIGHT = 150
 
 export const ANIMATION_DURATION = 3000
+export const COPTER_ANIMATION_DURATION = 2500
 
 export const GRAVITY = 800
 export const VELOCITY_ON_TAP = -400
 export const PIPE_BETWEEN_OFFSET = 70
 export const PIPE_LEFT_EDGE = -100
+export const COPTER_LEFT_EDGE = -150
 
 export const PIPE_START_RANGE = -220
 export const PIPE_END_RANGE = 200
 
-//TODO Decide which gradient to use
 export const SCORE_GRADIENT_VIBRANT = ['#ffffff', '#fffa50']
 export const SCORE_GRADIENT_COOL = ['#ffffff', '#b2dffc']
 export const OVERLAY_COLOR = '#000000ad'
@@ -34,9 +35,12 @@ export const GIFT_SCORE_HEIGHT = 40
 export const TOTAL_GIFT_SCORE = 5
 
 export const SPEER_WIDTH = 70
+export const COPTER_HEIGHT = 48
+export const COPTER_WIDTH = 150
 
 //TODO Check difficulty steps range
 export const APPEAR_GIFT_STEPS = ['3', '8', '15', '20']
+export const APPEAR_COPTER_STEPS = ['2', '5', '10', '18']
 export const GIFT_WISHES = [
   {
     title: 'Happy Birthday! 🎂',
