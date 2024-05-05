@@ -35,7 +35,6 @@ import {
 } from 'react-native-gesture-handler'
 import {
   ANIMATION_DURATION,
-  APPEAR_COPTER_STEPS,
   APPEAR_GIFT_STEPS,
   BIRD_HEIGHT,
   BIRD_WIDTH,
@@ -71,12 +70,10 @@ import {
 } from '../constants/store'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
-import { getRange } from '../utils/utils'
+import { generateRandomNumbersArr, getRange } from '../utils/utils'
 import { useSound } from '../hooks/useSound'
 import { withPause } from 'react-native-redash'
 
-//TODO Add copter score
-//TODO Add copter destroy shout
 //TODO Change final score message
 //TODO Recreate copter array after restart
 
@@ -125,6 +122,9 @@ const App = () => {
   const { playSound: playGiftSuccess } = useSound(
     require('../assets/audio/success.wav')
   )
+  const { playSound: playShoutSound } = useSound(
+    require('../assets/audio/shout.wav')
+  )
 
   //Default values
   const defaultPipePosX = width + 50
@@ -152,6 +152,9 @@ const App = () => {
   const copterOpacity = useSharedValue(0)
   const copterScore = useSharedValue(0)
   const touchingWithCopterValue = useSharedValue(false)
+  const appearCopterSteps = useSharedValue(
+    generateRandomNumbersArr(APPEAR_GIFT_STEPS)
+  )
 
   //Derived values
   const scoreTextValue = useDerivedValue(() => score.value.toString())
@@ -167,7 +170,7 @@ const App = () => {
   const giftScoreWidth = useDerivedValue(
     () => giftFont.getTextWidth(giftScoreValue.value) + 25
   )
-
+  const copterScoreValue = useDerivedValue(() => copterScore.value.toString())
   const centerScoreBox = useDerivedValue(() => {
     const k = score.value >= 10 ? 15 : -10
     return centerScoreText.value - scoreWidth.value / 2 + k
@@ -271,7 +274,6 @@ const App = () => {
   })
 
   function animateCopter() {
-    console.log('animating')
     copterOpacity.value = 1
     copterX.value = withPause(
       withSequence(
@@ -287,7 +289,7 @@ const App = () => {
   }
 
   function changeOpacityWithOverlap(stepsArr, targetValue) {
-    const isOverlap = stepsArr.includes(scoreTextValue.value)
+    const isOverlap = stepsArr.includes(+scoreTextValue.value)
     if (isOverlap) {
       targetValue.value = 1
     } else {
@@ -336,7 +338,7 @@ const App = () => {
     )
 
     changeOpacityWithOverlap(APPEAR_GIFT_STEPS, giftOpacity)
-    changeOpacityWithOverlap(APPEAR_COPTER_STEPS, copterOpacity)
+    changeOpacityWithOverlap(appearCopterSteps.value, copterOpacity)
   }
 
   function isPointCollidingWithRect(point, rect) {
@@ -355,10 +357,13 @@ const App = () => {
     gameOver.value = false
     pipeX.value = defaultPipePosX
     score.value = 0
+    copterScore.value = 0
     gameOverBannerOpacity.value = 0
     countDownOverlayOpacity.value = 1
     boomOpacity.value = 0
     copterX.value = defaultCopterX
+
+    appearCopterSteps.value = generateRandomNumbersArr(APPEAR_GIFT_STEPS)
 
     //TODO Think about restart
     giftScore.value = 0
@@ -393,8 +398,8 @@ const App = () => {
   function showScoreAlertAfterDelay() {
     showAlertAfterDelay({
       playSound: playDieSound,
-      title: 'Flight Finished! 🕊️',
-      description: `You've reached the end of your flight. But don't worry, you did great! \n\nYour final score is ${scoreTextValue.value}.`,
+      title: 'Mission Failed! 💥',
+      description: `You've reached the end of your flight. But don't worry, you did great! \n\nYour final score: ${scoreTextValue.value} 🎖️\nTotal helicopter destroyed: ${copterScoreValue.value} 🚁`,
       alertConfig: [
         { text: 'Home', onPress: returnToHomeScreen },
         {
@@ -555,6 +560,7 @@ const App = () => {
     (currentValue, previousValue) => {
       if (!previousValue && currentValue) {
         runOnJS(playHitSound)()
+        runOnJS(playShoutSound)()
         copterScore.value = copterScore.value + 1
         boomOpacity.value = withTiming(1.6, { duration: 300 }, (isFinish) => {
           if (isFinish) boomOpacity.value = 0
@@ -707,6 +713,40 @@ const App = () => {
                 <Image
                   image={gift}
                   y={20 + PIPE_WIDTH / 1.5 / 6}
+                  x={giftScoreWidth}
+                  width={PIPE_WIDTH / 1.5}
+                  height={PIPE_WIDTH / 1.5}
+                  fit={'contain'}
+                />
+              </Group>
+
+              {/* COPTER SCORE */}
+              <Group>
+                <Box
+                  box={rrect(
+                    rect(
+                      GIFT_SCORE_X,
+                      GIFT_SCORE_WIDTH / 2 +
+                        GIFT_SCORE_HEIGHT / 2 +
+                        GIFT_SCORE_Y,
+                      GIFT_SCORE_WIDTH,
+                      GIFT_SCORE_HEIGHT
+                    ),
+                    SCORE_BOX_RADIUS / 2,
+                    SCORE_BOX_RADIUS / 2
+                  )}
+                  color={SCORE_BOX_COLOR}
+                />
+                <Text text={copterScoreValue} x={20} y={100} font={giftFont}>
+                  <LinearGradient
+                    start={vec(0, 0)}
+                    end={vec(256, 256)}
+                    colors={SCORE_GRADIENT_COOL}
+                  />
+                </Text>
+                <Image
+                  image={copter}
+                  y={70 + PIPE_WIDTH / 1.5 / 6}
                   x={giftScoreWidth}
                   width={PIPE_WIDTH / 1.5}
                   height={PIPE_WIDTH / 1.5}

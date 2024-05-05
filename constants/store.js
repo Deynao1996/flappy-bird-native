@@ -39,8 +39,7 @@ export const COPTER_HEIGHT = 48
 export const COPTER_WIDTH = 150
 
 //TODO Check difficulty steps range
-export const APPEAR_GIFT_STEPS = ['3', '8', '15', '20']
-export const APPEAR_COPTER_STEPS = ['2', '5', '10', '18']
+export const APPEAR_GIFT_STEPS = [3, 8, 15, 20]
 export const GIFT_WISHES = [
   {
     title: 'Happy Birthday! 🎂',
