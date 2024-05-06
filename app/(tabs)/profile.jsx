@@ -67,11 +67,6 @@ const Profile = () => {
         <Text className="text-xl font-psemibold text-white mt-2 text-center">
           No information provided by user
         </Text>
-        <CustomButton
-          title={'User Settings'}
-          handlePress={() => ({})}
-          containerStyles={'my-5 w-full'}
-        />
       </View>
       <StatusBar style="light" backgroundColor="#161622" />
     </SafeAreaView>
