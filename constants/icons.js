@@ -11,6 +11,9 @@ import play from '../assets/icons/play.png'
 import profile from '../assets/icons/profile.png'
 import scores from '../assets/icons/scores.png'
 import star from '../assets/icons/star.png'
+import bronze from '../assets/icons/bronze.png'
+import silver from '../assets/icons/silver.png'
+import gold from '../assets/icons/gold.png'
 
 export default {
   play,
@@ -25,5 +28,8 @@ export default {
   eye,
   profile,
   scores,
-  star
+  star,
+  bronze,
+  silver,
+  gold
 }

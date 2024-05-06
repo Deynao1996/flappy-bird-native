@@ -75,8 +75,7 @@ import { useSound } from '../hooks/useSound'
 import { withPause } from 'react-native-redash'
 import { router } from 'expo-router'
 
-//TODO Change final score message
-//TODO Recreate copter array after restart
+//TODO check fonts
 
 //Font settings
 const scoreFontSize = 40
@@ -604,7 +603,7 @@ const App = () => {
       <SafeAreaView>
         <GestureHandlerRootView>
           <GestureDetector gesture={gesture}>
-            <Canvas style={{ width, height }}>
+            <Canvas style={{ width, height, backgroundColor: '#18504c' }}>
               {/* Background */}
               <Image image={bg} fit={'cover'} width={width} height={height} />
 
@@ -869,7 +868,7 @@ const App = () => {
               </Group>
             </Canvas>
           </GestureDetector>
-          <StatusBar style="light" backgroundColor="grey" />
+          <StatusBar style="dark" backgroundColor="#d5d5d5" />
         </GestureHandlerRootView>
       </SafeAreaView>
     </>
