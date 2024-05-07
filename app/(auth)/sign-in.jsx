@@ -6,6 +6,7 @@ import { images } from '../../constants'
 import FormField from '../../components/FormField'
 import CustomButton from '../../components/CustomButton'
 import { Link, router } from 'expo-router'
+import { loginUser } from '../../utils/service'
 // import { useGlobalContext } from '../../context/GlobalProvider'
 
 const SignIn = () => {
@@ -17,9 +18,14 @@ const SignIn = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   async function handleSubmit() {
-    router.push('/sign-up')
+    try {
+      const res = await loginUser(form)
+      console.log(res.data)
+      // console.log(res.data)
+    } catch (error) {
+      // console.log(error)
+    }
     //TODO Add functionality
-    return
   }
 
   return (

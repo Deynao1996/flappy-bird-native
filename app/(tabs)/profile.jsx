@@ -9,6 +9,7 @@ import CustomButton from '../../components/CustomButton'
 import ProfileImage from '../../components/ProfileImage'
 
 //TODO Check user settings
+//TODO Check policy
 
 const Profile = () => {
   const { user } = useGlobalContext()

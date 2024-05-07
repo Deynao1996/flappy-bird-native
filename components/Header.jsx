@@ -11,7 +11,7 @@ const Header = ({ title, subtitle }) => {
             <Text className="text-2xl font-psemibold text-white">{title}</Text>
             <Image
               source={images.logo}
-              className="w-9 h-10"
+              className="w-12 h-12"
               resizeMode="contain"
             />
           </View>

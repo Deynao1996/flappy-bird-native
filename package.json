@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@shopify/react-native-skia": "0.1.221",
+    "axios": "^1.6.8",
     "expo": "~50.0.17",
     "expo-av": "~13.10.6",
     "expo-constants": "~15.4.6",

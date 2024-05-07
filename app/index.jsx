@@ -6,8 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { images } from '../constants'
 import CustomButton from '../components/CustomButton'
 // import { useGlobalContext } from '../context/GlobalProvider'
-//TODO ADD Global Provider
-//TODO Check sound quality
 
 export default function App() {
   // const { isLoading, isLoggedIn } = useGlobalContext()
@@ -30,7 +28,7 @@ export default function App() {
           <View className="mt-5 relative">
             <Text className="text-3xl text-white font-bold text-center">
               Discover Joyful Surprises with{' '}
-              <Text className="text-secondary-200">HFriend</Text>
+              <Text className="text-secondary-200">exFriend</Text>
             </Text>
             <Image
               source={images.path}
@@ -39,12 +37,12 @@ export default function App() {
             />
           </View>
           <Text className="text-sm font-pregular text-gray-100 mt-7 text-center">
-            Unleash joy and heartfelt surprises with HFriend. Let's make every
+            Unleash joy and heartfelt surprises with exFriend. Let's make every
             day feel like a birthday celebration!
           </Text>
           <CustomButton
             title={'Continue with Email'}
-            handlePress={() => router.push('/home')}
+            handlePress={() => router.push('/sign-in')}
             containerStyles={'w-full mt-7'}
           />
         </View>
