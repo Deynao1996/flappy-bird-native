@@ -1,34 +1,44 @@
-import { View, Text, FlatList, Image, RefreshControl } from 'react-native'
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  RefreshControl,
+  ActivityIndicator
+} from 'react-native'
 import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { useGlobalContext } from '../../context/GlobalProvider'
 import Score from '../../components/Score'
 import Header from '../../components/Header'
-
-const users = [
-  { _id: '2', username: 'Dmytro', gifts: 0, copters: 4, score: 2 },
-  { _id: '1', username: 'Julia', gifts: 5, copters: 10, score: 15 },
-  { _id: '3', username: 'John', gifts: 0, copters: 1, score: 6 },
-  { _id: '4', username: 'John', gifts: 0, copters: 1, score: 6 }
-]
+import { useQuery } from '@tanstack/react-query'
+import { fetchUsers } from '../../utils/service'
+import { useHandleError } from '../../hooks/useHandleError'
 
 const Scores = () => {
-  const [refreshing, setRefreshing] = useState(false)
   const { user } = useGlobalContext()
+  const [refreshing, setRefreshing] = useState(false)
+  const { data, isError, error, refetch, isLoading } = useQuery({
+    queryKey: ['scores'],
+    queryFn: fetchUsers
+  })
+  useHandleError(isError, error)
 
   async function handleRefresh() {
-    // setRefreshing(true)
-    // await refetch()
-    // setRefreshing(false)
+    setRefreshing(true)
+    await refetch()
+    setRefreshing(false)
   }
 
   return (
     <SafeAreaView className="bg-primary h-full">
       <FlatList
-        data={users}
+        data={data?.data}
         keyExtractor={(item) => item._id}
-        renderItem={({ item, index }) => <Score user={item} index={index} />}
+        renderItem={({ item, index }) => (
+          <Score user={item} index={index} isOwner={user?._id === item._id} />
+        )}
         ListHeaderComponent={() => (
           <Header
             title={'Scoreboard'}
@@ -39,6 +49,21 @@ const Scores = () => {
         )}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+        ListEmptyComponent={
+          isLoading ? (
+            <ActivityIndicator
+              animating={true}
+              color={'#FFA001'}
+              size={'large'}
+            />
+          ) : (
+            <View className="flex justify-center items-center h-full">
+              <Text className="text-white font-pbold text-2xl">
+                No Scores Found
+              </Text>
+            </View>
+          )
         }
       />
       <StatusBar style="light" backgroundColor="#161622" />

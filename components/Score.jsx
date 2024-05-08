@@ -2,6 +2,7 @@ import { View, Text, Image } from 'react-native'
 import React from 'react'
 import ProfileImage from './ProfileImage'
 import { icons } from '../constants'
+import { TARGET_USER_ID } from '../constants/store'
 
 const PlaceImage = ({ source }) => {
   return (
@@ -13,7 +14,7 @@ const PlaceImage = ({ source }) => {
   )
 }
 
-const Score = ({ user, index }) => {
+const Score = ({ user, index, isOwner }) => {
   const currentPlace = index + 1
 
   function setRelativeImage(currentPlace) {
@@ -37,7 +38,7 @@ const Score = ({ user, index }) => {
           {setRelativeImage(currentPlace)}
         </View>
         <View className="flex flex-row gap-x-2">
-          <ProfileImage avatar={user?.avatar} styles={'w-14 h-14'} />
+          <ProfileImage avatar={user?.avatar} styles={isOwner && 'border-2'} />
           <View className="flex flex-row justify-between space-x-4">
             <View className="flex flex-col">
               <Text className="text-white text-md font-psemibold">
@@ -48,7 +49,7 @@ const Score = ({ user, index }) => {
             <Text className="text-white text-md font-psemibold">
               Copters: {user.copters}
             </Text>
-            {user.username === 'Julia' && (
+            {user._id === TARGET_USER_ID && (
               <Text className="text-white text-md font-psemibold">
                 Gifts: {user.gifts}
               </Text>

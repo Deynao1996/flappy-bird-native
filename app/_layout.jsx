@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react'
 import { Stack, SplashScreen } from 'expo-router'
 import { useFonts } from 'expo-font'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import GlobalProvider from '../context/GlobalProvider'
 
 SplashScreen.preventAutoHideAsync()
+const queryClient = new QueryClient()
 
 const RootLayout = () => {
   const [fontsLoaded, error] = useFonts({
@@ -36,14 +38,16 @@ const RootLayout = () => {
   }
 
   return (
-    <GlobalProvider>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="game" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
-    </GlobalProvider>
+    <QueryClientProvider client={queryClient}>
+      <GlobalProvider>
+        <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen name="game" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack>
+      </GlobalProvider>
+    </QueryClientProvider>
   )
 }
 

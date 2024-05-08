@@ -2,18 +2,59 @@ import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import Header from '../../components/Header'
-import { ScrollView, View } from 'react-native'
+import { Alert, ScrollView, View } from 'react-native'
 import FormField from '../../components/FormField'
 import { useGlobalContext } from '../../context/GlobalProvider'
 import CustomButton from '../../components/CustomButton'
+import { useMutation } from '@tanstack/react-query'
+import { sendReview } from '../../utils/service'
+import { useHandleError } from '../../hooks/useHandleError'
 
 const Review = () => {
   const { user } = useGlobalContext()
-  const [uploading, setUploading] = useState(false)
+  const { mutate, isError, error, isPending } = useMutation({
+    mutationFn: (review) => sendReview(review),
+    onSuccess
+  })
+  useHandleError(isError, error)
   const [form, setForm] = useState({
     title: '',
-    message: null
+    message: ''
   })
+
+  function validateFields() {
+    const { title, message } = form
+    let isValid = true
+
+    if (!title) {
+      Alert.alert('Validation Error', 'Please enter your subject.')
+      isValid = false
+    }
+
+    if (!message) {
+      Alert.alert('Validation Error', 'Please enter your message.')
+      isValid = false
+    }
+
+    return isValid
+  }
+
+  function onSuccess() {
+    Alert.alert(
+      'Review Submitted! 🌟',
+      'Thank you for your review! We value your feedback and will use it to improve our app. Enjoy!'
+    )
+    setForm({
+      title: '',
+      message: ''
+    })
+  }
+
+  function handleSubmit() {
+    if (validateFields()) {
+      mutate({ ...form, userId: user._id })
+    }
+  }
 
   return (
     <SafeAreaView className="bg-primary h-full">
@@ -43,8 +84,9 @@ const Review = () => {
           />
           <CustomButton
             title={'Send'}
-            handlePress={() => ({})}
+            handlePress={handleSubmit}
             containerStyles={'mt-7'}
+            isLoading={isPending}
           />
         </View>
       </ScrollView>

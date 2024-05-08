@@ -62,3 +62,6 @@ export const GIFT_WISHES = [
       "Sending you bundles of joy and endless smiles on your special day! May your birthday be as joyful and delightful as you make the world around you. Here's to a day filled with love, laughter, and unforgettable memories. \n\nHappy Birthday!"
   }
 ]
+
+export const TARGET_USER_ID = '663b0b0a3399a6bf829fdf66'
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/

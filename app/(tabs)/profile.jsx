@@ -12,48 +12,41 @@ import ProfileImage from '../../components/ProfileImage'
 //TODO Check policy
 
 const Profile = () => {
-  const { user } = useGlobalContext()
-
-  async function handleLogout() {
-    // await signOut()
-    // setUser(null)
-    // setIsLoggedIn(false)
-    // router.replace('/sign-in')
-  }
-
+  const { user, signOut } = useGlobalContext()
   return (
     <SafeAreaView className="bg-primary h-full">
       <View className="w-full justify-center items-center mt-6 px-4">
-        <TouchableOpacity
-          className="w-full items-end mb-10"
-          onPress={handleLogout}
-        >
+        <TouchableOpacity className="w-full items-end mb-10" onPress={signOut}>
           <Image
             source={icons.logout}
             resizeMode="contain"
             className="w-6 h-6"
           />
         </TouchableOpacity>
-        <ProfileImage avatar={user?.avatar} />
+        <ProfileImage avatar={user?.avatar} styles={'border-2 w-20 h-20'} />
         <InfoBox
-          title={user?.username}
+          title={user.username}
           containerStyles="mt-5"
           titleStyles="text-lg"
         />
         <View className="mt-5 flex-row">
           <InfoBox
-            title={'10'}
+            title={user.score}
             subtitle="Score"
             containerStyles="mr-10"
             titleStyles="text-xl"
           />
           <InfoBox
-            title={'5'}
+            title={user.gifts}
             subtitle="Gifts"
             titleStyles="text-xl"
             containerStyles="mr-10"
           />
-          <InfoBox title={'5'} subtitle="Copters" titleStyles="text-xl" />
+          <InfoBox
+            title={user.copters}
+            subtitle="Copters"
+            titleStyles="text-xl"
+          />
         </View>
       </View>
       <View className="justify-center items-center px-4">

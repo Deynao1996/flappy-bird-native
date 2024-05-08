@@ -1,32 +1,28 @@
+import { router } from 'expo-router'
 import { createContext, useContext, useEffect, useState } from 'react'
 
 const GlobalContext = createContext()
 export const useGlobalContext = () => useContext(GlobalContext)
 
 const GlobalProvider = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [user, setUser] = useState({
-    username: 'Julia',
-    email: 'julia@test.com'
-  })
-  const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState(null)
 
-  function auth() {
-    return
+  function signIn(user) {
+    setUser(user)
+    router.push('/home')
   }
 
-  // useEffect(() => {
-  //   auth()
-  // }, [])
+  function signOut() {
+    setUser(null)
+    router.replace('/sign-in')
+  }
 
   return (
     <GlobalContext.Provider
       value={{
-        isLoggedIn,
-        setIsLoggedIn,
-        isLoading,
         user,
-        setUser
+        signIn,
+        signOut
       }}
     >
       {children}

@@ -5,13 +5,13 @@ import { icons } from '../constants'
 const ProfileImage = ({ avatar, styles }) => {
   return (
     <View
-      className={`w-16 h-16 border border-secondary rounded-lg justify-center items-center ${
-        avatar ? 'p-0' : 'p-2'
+      className={`w-16 h-16 border-0 border-secondary rounded-lg justify-center items-center ${
+        avatar ? 'p-0' : 'p-3'
       } ${styles}`}
     >
       <Image
-        source={avatar ? avatar : icons.profile}
-        className={`w-full h-full rounded-lg`}
+        source={avatar ? { uri: avatar } : icons.profile}
+        className={`w-full h-full rounded-md`}
         resizeMode="cover"
       />
     </View>

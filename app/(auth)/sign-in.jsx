@@ -7,25 +7,60 @@ import FormField from '../../components/FormField'
 import CustomButton from '../../components/CustomButton'
 import { Link, router } from 'expo-router'
 import { loginUser } from '../../utils/service'
+import { useMutation } from '@tanstack/react-query'
+import { useHandleError } from '../../hooks/useHandleError'
+import { useGlobalContext } from '../../context/GlobalProvider'
+import { EMAIL_REGEX } from '../../constants/store'
 // import { useGlobalContext } from '../../context/GlobalProvider'
 
 const SignIn = () => {
-  // const { setUser, setIsLoggedIn } = useGlobalContext()
+  const { signIn } = useGlobalContext()
+  const { mutate, isError, error, isPending } = useMutation({
+    mutationFn: (user) => loginUser(user),
+    onSuccess
+  })
+  useHandleError(isError, error)
   const [form, setForm] = useState({
     email: '',
     password: ''
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  async function handleSubmit() {
-    try {
-      const res = await loginUser(form)
-      console.log(res.data)
-      // console.log(res.data)
-    } catch (error) {
-      // console.log(error)
+  function validateFields() {
+    const { email, password } = form
+    let isValid = true
+
+    if (!email || !email.trim()) {
+      Alert.alert('Validation Error', 'Please enter your email address.')
+      isValid = false
+    } else if (!EMAIL_REGEX.test(email)) {
+      Alert.alert('Validation Error', 'Please enter a valid email address.')
+      isValid = false
     }
-    //TODO Add functionality
+
+    if (!password || password.trim().length < 5) {
+      Alert.alert(
+        'Validation Error',
+        'Password must be at least 5 characters long.'
+      )
+      isValid = false
+    }
+
+    return isValid
+  }
+
+  function onSuccess(data) {
+    if (!data.data) return
+    if (data.data.isBan) return Alert.alert('Error', 'You are banned!')
+    signIn(data.data)
+  }
+
+  function handleSubmit() {
+    if (validateFields()) {
+      mutate({
+        email: form.email.trim(),
+        password: form.password.trim()
+      })
+    }
   }
 
   return (
@@ -57,7 +92,7 @@ const SignIn = () => {
             title="Sign In"
             handlePress={handleSubmit}
             containerStyles={'mt-7'}
-            isLoading={isSubmitting}
+            isLoading={isPending}
           />
           <View className="justify-center pt-5 flex-row gap-2">
             <Text className="text-md text-gray-100 font-pregular">

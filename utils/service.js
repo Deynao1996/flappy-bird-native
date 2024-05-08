@@ -1,3 +1,4 @@
+import { TARGET_USER_ID } from '../constants/store'
 import { request } from './axios-utils'
 
 export const registerUser = async (user) => {

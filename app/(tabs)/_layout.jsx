@@ -1,7 +1,8 @@
 import React from 'react'
-import { Tabs } from 'expo-router'
+import { Redirect, Tabs } from 'expo-router'
 import { Image, Text, View } from 'react-native'
 import { icons } from '../../constants'
+import { useGlobalContext } from '../../context/GlobalProvider'
 
 const TabIcon = ({ icon, color, name, focused }) => {
   return (
@@ -23,6 +24,9 @@ const TabIcon = ({ icon, color, name, focused }) => {
 }
 
 const TabsLayout = () => {
+  const { user } = useGlobalContext()
+  if (!user) return <Redirect href="/sign-in" />
+
   return (
     <>
       <Tabs
