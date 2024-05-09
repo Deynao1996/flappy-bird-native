@@ -32,32 +32,31 @@ export const GIFT_SCORE_X = 8
 export const GIFT_SCORE_Y = 5
 export const GIFT_SCORE_WIDTH = 100
 export const GIFT_SCORE_HEIGHT = 40
-export const TOTAL_GIFT_SCORE = 5
 
 export const SPEER_WIDTH = 70
 export const COPTER_HEIGHT = 48
 export const COPTER_WIDTH = 150
 
 //TODO Check difficulty steps range
-export const APPEAR_GIFT_STEPS = [3, 8, 15, 20]
+export const APPEAR_GIFT_STEPS = [3, 8, 17, 22]
 export const GIFT_WISHES = [
   {
-    title: 'Happy Birthday! 🎂 1',
+    title: 'Happy Birthday! 🎂',
     description:
       "Sending you the warmest wishes on your special day! May your birthday be filled with love, laughter, and all the things that make you smile. Here's to another amazing year ahead, filled with joy, success, and unforgettable moments. \n\nHappy Birthday!"
   },
   {
-    title: 'Birthday Cheers! 🎉 2',
+    title: 'Birthday Cheers! 🎉',
     description:
       'Cheers to another fantastic year ahead! Wishing you a birthday filled with happiness, love, and endless celebrations. \n\nMay your day be as wonderful as you are. Happy Birthday!'
   },
   {
-    title: 'Birthday Bliss! 🌟 3',
+    title: 'Birthday Bliss! 🌟',
     description:
       "Here's to celebrating you today and every day! May your birthday be as bright and beautiful as you are, filled with love, laughter, and countless blessings. \n\nWishing you the happiest of birthdays!"
   },
   {
-    title: 'Birthday Joy! 🎈 4',
+    title: 'Birthday Joy! 🎈',
     description:
       "Sending you bundles of joy and endless smiles on your special day! May your birthday be as joyful and delightful as you make the world around you. Here's to a day filled with love, laughter, and unforgettable memories. \n\nHappy Birthday!"
   }

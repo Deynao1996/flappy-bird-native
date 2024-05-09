@@ -66,7 +66,6 @@ import {
   SCORE_Y,
   SPEER_WIDTH,
   TARGET_USER_ID,
-  TOTAL_GIFT_SCORE,
   VELOCITY_ON_TAP
 } from '../constants/store'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -136,6 +135,7 @@ const App = () => {
   const defaultBirdXPosition = width / 4
   const defaultCopterX = width + 200
   const defaultGiftScore = user ? user.gifts : 0
+  const defaultTotalGiftScore = APPEAR_GIFT_STEPS.length
 
   //Shared values
   const score = useSharedValue(0)
@@ -170,7 +170,7 @@ const App = () => {
     () => width / 2 - scoreWidth.value / 2
   )
   const giftScoreValue = useDerivedValue(
-    () => giftScore.value.toString() + ' / ' + TOTAL_GIFT_SCORE.toString()
+    () => giftScore.value.toString() + ' / ' + defaultTotalGiftScore.toString()
   )
   const giftScoreWidth = useDerivedValue(
     () => giftFont.getTextWidth(giftScoreValue.value) + 25
@@ -373,9 +373,6 @@ const App = () => {
 
     appearCopterSteps.value = generateRandomNumbersArr(APPEAR_GIFT_STEPS)
 
-    //TODO Think about restart
-    // giftScore.value = 0
-
     translateXCountdownCoefficient.value = 2
     gameOnStop.value = true
     countDown(() => (gameOnStop.value = false))
@@ -576,7 +573,7 @@ const App = () => {
     () => touchingWithGift.value,
     (currentValue, previousValue) => {
       if (!previousValue && currentValue) {
-        if (giftScore.value >= TOTAL_GIFT_SCORE) return
+        if (giftScore.value >= defaultTotalGiftScore) return
 
         giftScore.value = giftScore.value + 1
         gameOnPause.value = true

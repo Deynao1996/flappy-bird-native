@@ -39,7 +39,7 @@ const Score = ({ user, index, isOwner }) => {
         </View>
         <View className="flex flex-row gap-x-2">
           <ProfileImage avatar={user?.avatar} styles={isOwner && 'border-2'} />
-          <View className="flex flex-row justify-between space-x-4">
+          <View className="flex flex-row justify-between space-x-6">
             <View className="flex flex-col">
               <Text className="text-white text-md font-psemibold">
                 Score: {user.score}
@@ -49,11 +49,6 @@ const Score = ({ user, index, isOwner }) => {
             <Text className="text-white text-md font-psemibold">
               Copters: {user.copters}
             </Text>
-            {user._id === TARGET_USER_ID && (
-              <Text className="text-white text-md font-psemibold">
-                Gifts: {user.gifts}
-              </Text>
-            )}
           </View>
         </View>
       </View>

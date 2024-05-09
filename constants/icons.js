@@ -16,6 +16,8 @@ import silver from '../assets/icons/silver.png'
 import gold from '../assets/icons/gold.png'
 import error from '../assets/icons/error.png'
 import success from '../assets/icons/success.png'
+import down from '../assets/icons/arrow-down.png'
+import lock from '../assets/icons/lock.png'
 
 export default {
   play,
@@ -35,5 +37,7 @@ export default {
   silver,
   gold,
   error,
-  success
+  success,
+  down,
+  lock
 }
