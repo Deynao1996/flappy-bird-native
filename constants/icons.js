@@ -14,6 +14,8 @@ import star from '../assets/icons/star.png'
 import bronze from '../assets/icons/bronze.png'
 import silver from '../assets/icons/silver.png'
 import gold from '../assets/icons/gold.png'
+import error from '../assets/icons/error.png'
+import success from '../assets/icons/success.png'
 
 export default {
   play,
@@ -31,5 +33,7 @@ export default {
   star,
   bronze,
   silver,
-  gold
+  gold,
+  error,
+  success
 }

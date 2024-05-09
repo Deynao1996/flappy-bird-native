@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
-import { Alert } from 'react-native'
 
-export const useHandleError = (isError, error) => {
+export const useHandleError = (isError, error, handleError) => {
   useEffect(() => {
-    isError && Alert.alert('Error', error.message || 'Something went wrong!')
+    isError && handleError(error.message || 'Something went wrong!')
   }, [isError, error])
 }

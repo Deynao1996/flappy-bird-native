@@ -6,7 +6,7 @@ import CustomButton from '../../components/CustomButton'
 import { StatusBar } from 'expo-status-bar'
 import { router } from 'expo-router'
 
-const home = () => {
+const Home = () => {
   return (
     <SafeAreaView className="bg-primary h-full w-full relative">
       <ImageBackground
@@ -35,4 +35,4 @@ const home = () => {
   )
 }
 
-export default home
+export default Home

@@ -10,6 +10,7 @@ import ProfileImage from '../../components/ProfileImage'
 
 //TODO Check user settings
 //TODO Check policy
+//TODO Internet connection
 
 const Profile = () => {
   const { user, signOut } = useGlobalContext()
