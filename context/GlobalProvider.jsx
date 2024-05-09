@@ -21,6 +21,7 @@ const GlobalProvider = ({ children }) => {
     <GlobalContext.Provider
       value={{
         user,
+        setUser,
         signIn,
         signOut
       }}

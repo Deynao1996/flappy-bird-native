@@ -5,5 +5,6 @@ import logo from '../assets/images/logo.png'
 import logoLg from '../assets/images/logo-lg.png'
 import bg from '../assets/sprites/background-night.png'
 import intro from '../assets/images/intro.png'
+import hb from '../assets/images/hb.gif'
 
-export default { cards, path, empty, logo, logoLg, bg, intro }
+export default { cards, path, empty, logo, logoLg, bg, intro, hb }

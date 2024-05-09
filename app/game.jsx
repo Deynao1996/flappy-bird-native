@@ -65,6 +65,7 @@ import {
   SCORE_GRADIENT_VIBRANT,
   SCORE_Y,
   SPEER_WIDTH,
+  TARGET_USER_ID,
   TOTAL_GIFT_SCORE,
   VELOCITY_ON_TAP
 } from '../constants/store'
@@ -74,6 +75,8 @@ import { generateRandomNumbersArr, getRange } from '../utils/utils'
 import { useSound } from '../hooks/useSound'
 import { withPause } from 'react-native-redash'
 import { router } from 'expo-router'
+import { useGlobalContext } from '../context/GlobalProvider'
+import { updateUser } from '../utils/service'
 
 //TODO check fonts
 
@@ -94,6 +97,7 @@ const giftFont = matchFont(giftFontStyle)
 
 const App = () => {
   const { width, height } = useWindowDimensions()
+  const { user, setUser } = useGlobalContext()
 
   // Importing visual assets
   const bg = useImage(require('../assets/sprites/background-night.png'))
@@ -131,6 +135,7 @@ const App = () => {
   const defaultBirdYPosition = height / 3
   const defaultBirdXPosition = width / 4
   const defaultCopterX = width + 200
+  const defaultGiftScore = user ? user.gifts : 0
 
   //Shared values
   const score = useSharedValue(0)
@@ -144,7 +149,7 @@ const App = () => {
   const gameOverBannerOpacity = useSharedValue(0)
   const countDownOverlayOpacity = useSharedValue(1)
   const translateXCountdownCoefficient = useSharedValue(2)
-  const giftScore = useSharedValue(0)
+  const giftScore = useSharedValue(defaultGiftScore)
   const touchingWithGift = useSharedValue(false)
   const giftOpacity = useSharedValue(0)
   const groundSecondHalfX = useSharedValue(0)
@@ -337,7 +342,10 @@ const App = () => {
       gameOnPause
     )
 
-    changeOpacityWithOverlap(APPEAR_GIFT_STEPS, giftOpacity)
+    if (user?._id === TARGET_USER_ID) {
+      const updatedGiftSteps = APPEAR_GIFT_STEPS.slice(user?.gifts)
+      changeOpacityWithOverlap(updatedGiftSteps, giftOpacity)
+    }
     changeOpacityWithOverlap(appearCopterSteps.value, copterOpacity)
   }
 
@@ -366,7 +374,7 @@ const App = () => {
     appearCopterSteps.value = generateRandomNumbersArr(APPEAR_GIFT_STEPS)
 
     //TODO Think about restart
-    giftScore.value = 0
+    // giftScore.value = 0
 
     translateXCountdownCoefficient.value = 2
     gameOnStop.value = true
@@ -379,6 +387,37 @@ const App = () => {
 
   function handleThanks() {
     countDown(() => (gameOnPause.value = false))
+  }
+
+  async function updateScore() {
+    if (!user) return
+    const currentScore = {
+      score: +scoreTextValue.value,
+      copters: +copterScoreValue.value,
+      gifts: +giftScore.value
+    }
+    let updatedUser = {}
+    let willUpdate = false
+
+    if (user.score < currentScore.score) {
+      updatedUser.score = currentScore.score
+      updatedUser.copters = currentScore.copters
+      willUpdate = true
+    }
+
+    if (user.gifts < currentScore.gifts) {
+      updatedUser.gifts = currentScore.gifts
+      willUpdate = true
+    }
+
+    if (willUpdate) {
+      try {
+        await updateUser({ userId: user._id, data: updatedUser })
+        setUser((user) => ({ ...user, ...updatedUser }))
+      } catch (error) {
+        console.log(error)
+      }
+    }
   }
 
   function showAlertAfterDelay({
@@ -407,6 +446,7 @@ const App = () => {
         }
       ]
     })
+    updateScore()
   }
 
   function showGiftAlertAfterDelay() {

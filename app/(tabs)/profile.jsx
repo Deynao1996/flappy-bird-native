@@ -7,6 +7,7 @@ import { icons, images } from '../../constants'
 import InfoBox from '../../components/InfoBox'
 import CustomButton from '../../components/CustomButton'
 import ProfileImage from '../../components/ProfileImage'
+import { TARGET_USER_ID } from '../../constants/store'
 
 //TODO Check user settings
 //TODO Check policy
@@ -14,6 +15,7 @@ import ProfileImage from '../../components/ProfileImage'
 
 const Profile = () => {
   const { user, signOut } = useGlobalContext()
+
   return (
     <SafeAreaView className="bg-primary h-full">
       <View className="w-full justify-center items-center mt-6 px-4">
@@ -50,19 +52,36 @@ const Profile = () => {
           />
         </View>
       </View>
-      <View className="justify-center items-center px-4">
-        <Image
-          source={images.empty}
-          className="w-[270px] h-[215px]"
-          resizeMode="contain"
-        />
-        <Text className="font-pmedium text-sm text-gray-100">
-          No Information Found
-        </Text>
-        <Text className="text-xl font-psemibold text-white mt-2 text-center">
-          No information provided by user
-        </Text>
-      </View>
+      {TARGET_USER_ID === user._id ? (
+        <View className="justify-center items-center p-5">
+          <Image
+            source={images.hb}
+            className="w-[270px] h-[215px]"
+            resizeMode="contain"
+          />
+          <Text className="text-xl font-psemibold text-white mt-2 text-center">
+            Happy Birthday! 🎉
+          </Text>
+          <Text className="font-pmedium text-sm text-gray-100 text-center mt-4">
+            Wishing you the happiest of birthdays! I hope you enjoyed it to the
+            fullest!
+          </Text>
+        </View>
+      ) : (
+        <View className="justify-center items-center px-4">
+          <Image
+            source={images.empty}
+            className="w-[270px] h-[215px]"
+            resizeMode="contain"
+          />
+          <Text className="text-xl font-psemibold text-white mt-4 text-center">
+            No information provided by user
+          </Text>
+          <Text className="font-pmedium text-sm text-gray-100">
+            No Information Found
+          </Text>
+        </View>
+      )}
       <StatusBar style="light" backgroundColor="#161622" />
     </SafeAreaView>
   )
