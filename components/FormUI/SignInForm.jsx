@@ -10,6 +10,7 @@ import { EMAIL_REGEX } from '../../constants/store'
 import { useGlobalContext } from '../../context/GlobalProvider'
 import CustomButton from '../CustomButton'
 import { withSnackBar } from '../../hoc/withSnackBar'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const SignInForm = ({ setVisibleSnackBar }) => {
   const { signIn } = useGlobalContext()
@@ -46,9 +47,18 @@ const SignInForm = ({ setVisibleSnackBar }) => {
     return isValid
   }
 
-  function onSuccess(data) {
+  async function saveTokenToStorage(token) {
+    try {
+      await AsyncStorage.setItem('token', token)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  async function onSuccess(data) {
     if (!data.data) return
     if (data.data.isBan) return setVisibleSnackBar('You are banned!')
+    await saveTokenToStorage(data.data.accessToken)
     signIn(data.data)
   }
 

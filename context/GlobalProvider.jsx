@@ -1,5 +1,7 @@
 import { router } from 'expo-router'
 import { createContext, useContext, useEffect, useState } from 'react'
+import { loginWithJWT } from '../utils/service'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const GlobalContext = createContext()
 export const useGlobalContext = () => useContext(GlobalContext)
@@ -12,10 +14,26 @@ const GlobalProvider = ({ children }) => {
     router.push('/home')
   }
 
-  function signOut() {
+  async function signOut() {
     setUser(null)
-    router.replace('/sign-in')
+    await AsyncStorage.removeItem('token')
   }
+
+  useEffect(() => {
+    AsyncStorage.getItem('token')
+      .then((currentToken) => {
+        if (currentToken) {
+          loginWithJWT(currentToken)
+            .then((user) => signIn(user.data))
+            .catch(() => {
+              signOut()
+            })
+        }
+      })
+      .catch((e) => {
+        console.log(e)
+      })
+  }, [])
 
   return (
     <GlobalContext.Provider

@@ -33,31 +33,31 @@ const Profile = () => {
           </TouchableOpacity>
           <ProfileImage avatar={user?.avatar} styles={'border-2 w-20 h-20'} />
           <InfoBox
-            title={user.username}
+            title={user?.username}
             containerStyles="mt-5"
             titleStyles="text-lg"
           />
           <View className="mt-5 flex-row">
             <InfoBox
-              title={user.score}
+              title={user?.score}
               subtitle="Score"
               containerStyles="mr-10"
               titleStyles="text-xl"
             />
             <InfoBox
-              title={user.gifts}
+              title={user?.gifts}
               subtitle="Gifts"
               titleStyles="text-xl"
               containerStyles="mr-10"
             />
             <InfoBox
-              title={user.copters}
+              title={user?.copters}
               subtitle="Copters"
               titleStyles="text-xl"
             />
           </View>
         </View>
-        {TARGET_USER_ID === user._id && (
+        {TARGET_USER_ID === user?._id && (
           <>
             <View className="justify-center items-center p-5 pb-0">
               <Image
