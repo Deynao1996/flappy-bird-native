@@ -42,7 +42,7 @@ const Profile = () => {
           <InfoBox
             title={user?.username}
             containerStyles="mt-5"
-            titleStyles="text-lg"
+            titleStyles="text-lg capitalize"
           />
           <View className="mt-5 flex-row">
             <InfoBox

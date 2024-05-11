@@ -14,6 +14,8 @@ const FormField = ({
   ...props
 }) => {
   const [showPassword, setShowPassword] = useState(false)
+  const secureTextTiles = ['Password', 'New Password:', 'Old Password:']
+  const isSecureText = secureTextTiles.includes(title)
 
   return (
     <View className={`space-y-2 ${otherStyles}`}>
@@ -27,11 +29,11 @@ const FormField = ({
           placeholder={placeholder}
           onChangeText={handleChangeText}
           placeholderTextColor={'#CDCDE0'}
-          secureTextEntry={title === 'Password' && !showPassword}
+          secureTextEntry={isSecureText && !showPassword}
           style={inputStyle}
           {...props}
         />
-        {title === 'Password' && (
+        {isSecureText && (
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
             <Image
               source={!showPassword ? icons.eye : icons.eyeHide}

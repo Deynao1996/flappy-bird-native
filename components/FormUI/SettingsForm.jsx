@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native'
+import { View, Text, Alert } from 'react-native'
 import React, { useState } from 'react'
 import FormField from '../FormField'
 import { useGlobalContext } from '../../context/GlobalProvider'
@@ -9,12 +9,12 @@ import CustomButton from '../CustomButton'
 import { withSnackBar } from '../../hoc/withSnackBar'
 import { useMutation } from '@tanstack/react-query'
 import ProfileImage from '../ProfileImage'
+import { router } from 'expo-router'
 
 const SettingsForm = ({ setVisibleSnackBar }) => {
-  const { user } = useGlobalContext()
-  const { signIn } = useGlobalContext()
+  const { user, signOut } = useGlobalContext()
   const { mutate, isError, error, isPending } = useMutation({
-    mutationFn: (userId, data) => updateUser({ userId, data }),
+    mutationFn: ({ userId, data }) => updateUser({ userId, data }),
     onSuccess
   })
   useHandleError(isError, error, setVisibleSnackBar)
@@ -26,8 +26,7 @@ const SettingsForm = ({ setVisibleSnackBar }) => {
   })
 
   function validateFields() {
-    return true
-    const { email, password } = form
+    const { email, oldPassword, username, newPassword } = form
     let isValid = true
 
     if (!email || !email.trim()) {
@@ -40,8 +39,32 @@ const SettingsForm = ({ setVisibleSnackBar }) => {
       return isValid
     }
 
-    if (!password || password.trim().length < 5) {
-      setVisibleSnackBar('Password must be at least 5 characters long.')
+    if (!username || !username.trim()) {
+      setVisibleSnackBar('Please enter your username.')
+      isValid = false
+      return isValid
+    }
+
+    if (oldPassword && oldPassword.trim().length < 5) {
+      setVisibleSnackBar('Current Password must be at least 5 characters long.')
+      isValid = false
+      return isValid
+    }
+
+    if (newPassword && newPassword.trim().length < 5) {
+      setVisibleSnackBar('New Password must be at least 5 characters long.')
+      isValid = false
+      return isValid
+    }
+
+    if (oldPassword && !newPassword) {
+      setVisibleSnackBar('Please enter your new password.')
+      isValid = false
+      return isValid
+    }
+
+    if (newPassword && !oldPassword) {
+      setVisibleSnackBar('Please enter your old password.')
       isValid = false
       return isValid
     }
@@ -49,26 +72,34 @@ const SettingsForm = ({ setVisibleSnackBar }) => {
     return isValid
   }
 
-  async function onSuccess(data) {
-    return
-    if (!data.data) return
-    if (data.data.isBan) return setVisibleSnackBar('You are banned!')
-    await saveTokenToStorage(data.data.accessToken)
-    signIn(data.data)
+  async function onSuccess() {
+    Alert.alert('Success', 'To see updated data, please sign in again.', [
+      {
+        text: 'Ok',
+        onPress: () => {
+          signOut()
+          router.replace('/sign-in')
+        }
+      }
+    ])
   }
 
   function handleSubmit() {
     if (validateFields()) {
-      return
       mutate({
-        email: form.email.trim(),
-        password: form.password.trim()
+        userId: user._id,
+        data: {
+          email: form.email,
+          password: form.oldPassword || undefined,
+          username: form.username,
+          newPassword: form.newPassword || undefined
+        }
       })
     }
   }
 
   return (
-    <View className="p-4">
+    <View className="p-4 pt-0">
       <View className="flex justify-center items-center space-y-2">
         <ProfileImage
           avatar={user?.avatar}
@@ -102,7 +133,7 @@ const SettingsForm = ({ setVisibleSnackBar }) => {
         otherStyles="mt-5"
       />
       <FormField
-        title={'New password:'}
+        title={'New Password:'}
         value={form.newPassword}
         placeholder={'******'}
         handleChangeText={(e) => setForm({ ...form, newPassword: e })}

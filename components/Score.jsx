@@ -44,7 +44,7 @@ const Score = ({ user, index, isOwner }) => {
               <Text className="text-white text-md font-psemibold">
                 Score: {user.score}
               </Text>
-              <Text className="text-gray-100">{user.username}</Text>
+              <Text className="text-gray-100 capitalize">{user.username}</Text>
             </View>
             <Text className="text-white text-md font-psemibold">
               Copters: {user.copters}
