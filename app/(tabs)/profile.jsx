@@ -9,6 +9,7 @@ import CustomButton from '../../components/CustomButton'
 import ProfileImage from '../../components/ProfileImage'
 import { TARGET_USER_ID } from '../../constants/store'
 import GiftLogs from '../../components/GiftLogs'
+import { router } from 'expo-router'
 
 //TODO Check user settings
 //TODO Check policy
@@ -21,16 +22,22 @@ const Profile = () => {
     <SafeAreaView className="bg-primary h-full">
       <ScrollView>
         <View className="w-full justify-center items-center mt-6 px-4">
-          <TouchableOpacity
-            className="w-full items-end mb-10"
-            onPress={signOut}
-          >
-            <Image
-              source={icons.logout}
-              resizeMode="contain"
-              className="w-6 h-6"
-            />
-          </TouchableOpacity>
+          <View className="w-full items-end mb-10 flex-row justify-end space-x-8">
+            <TouchableOpacity onPress={() => router.push('/settings')}>
+              <Image
+                source={icons.settings}
+                resizeMode="contain"
+                className="w-6 h-6"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={signOut}>
+              <Image
+                source={icons.logout}
+                resizeMode="contain"
+                className="w-6 h-6"
+              />
+            </TouchableOpacity>
+          </View>
           <ProfileImage avatar={user?.avatar} styles={'border-2 w-20 h-20'} />
           <InfoBox
             title={user?.username}
@@ -76,7 +83,6 @@ const Profile = () => {
           </>
         )}
         <GiftLogs />
-
         <StatusBar style="light" backgroundColor="#161622" />
       </ScrollView>
     </SafeAreaView>

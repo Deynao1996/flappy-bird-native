@@ -5,8 +5,12 @@ import { images } from '../../constants'
 import CustomButton from '../../components/CustomButton'
 import { StatusBar } from 'expo-status-bar'
 import { router } from 'expo-router'
+import { useGlobalContext } from '../../context/GlobalProvider'
+import { TARGET_USER_ID } from '../../constants/store'
 
 const Home = () => {
+  const { user } = useGlobalContext()
+
   return (
     <SafeAreaView className="bg-primary h-full w-full relative">
       <ImageBackground
@@ -14,12 +18,26 @@ const Home = () => {
         resizeMode="cover"
         className="justify-between flex-1 py-5"
       >
-        <View className="flex justify-between items-center flex-col">
-          <Image
-            source={images.intro}
-            className="w-[375px] h-[475px] fixed inset-0 z-10"
-            resizeMode="cover"
-          />
+        <View />
+        <View className="gap-20">
+          <View className="flex flex-col items-center">
+            <Text className="text-lg font-pstart text-white">BE BRAVE!</Text>
+            {user?._id === TARGET_USER_ID && (
+              <Text className="text-lg font-pstart text-white">
+                HAPPY BIRTHDAY
+              </Text>
+            )}
+            <Text className="text-lg font-pstart text-white">AND</Text>
+          </View>
+          <View className="flex justify-between items-center flex-col">
+            <View>
+              <Image
+                source={images.intro}
+                className="w-[375px] h-[240px]"
+                resizeMode="contain"
+              />
+            </View>
+          </View>
         </View>
         <View className="px-5">
           <CustomButton

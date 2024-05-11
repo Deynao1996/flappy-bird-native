@@ -18,6 +18,7 @@ import error from '../assets/icons/error.png'
 import success from '../assets/icons/success.png'
 import down from '../assets/icons/arrow-down.png'
 import lock from '../assets/icons/lock.png'
+import settings from '../assets/icons/settings.png'
 
 export default {
   play,
@@ -39,5 +40,6 @@ export default {
   error,
   success,
   down,
-  lock
+  lock,
+  settings
 }

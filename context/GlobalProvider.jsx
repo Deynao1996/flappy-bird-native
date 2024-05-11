@@ -1,13 +1,17 @@
 import { router } from 'expo-router'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { loginWithJWT } from '../utils/service'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useSound } from '../hooks/useSound'
+import { TARGET_USER_ID } from '../constants/store'
 
 const GlobalContext = createContext()
 export const useGlobalContext = () => useContext(GlobalContext)
 
 const GlobalProvider = ({ children }) => {
   const [user, setUser] = useState(null)
+  const { playSound } = useSound(require('../assets/audio/hb.wav'))
+  const isFirstRenderRef = useRef(true)
 
   function signIn(user) {
     setUser(user)
@@ -34,6 +38,14 @@ const GlobalProvider = ({ children }) => {
         console.log(e)
       })
   }, [])
+
+  useEffect(() => {
+    if (user && user._id === TARGET_USER_ID && isFirstRenderRef.current) {
+      isFirstRenderRef.current = false
+      console.log('playing sound')
+      playSound()
+    }
+  }, [user])
 
   return (
     <GlobalContext.Provider
