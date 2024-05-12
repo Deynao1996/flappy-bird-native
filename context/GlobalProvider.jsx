@@ -42,7 +42,6 @@ const GlobalProvider = ({ children }) => {
   useEffect(() => {
     if (user && user._id === TARGET_USER_ID && isFirstRenderRef.current) {
       isFirstRenderRef.current = false
-      console.log('playing sound')
       playSound()
     }
   }, [user])

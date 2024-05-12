@@ -1,4 +1,4 @@
-import { View, Text, Alert } from 'react-native'
+import { View, Text, Alert, TouchableOpacity, Image } from 'react-native'
 import React, { useState } from 'react'
 import FormField from '../FormField'
 import { useGlobalContext } from '../../context/GlobalProvider'
@@ -10,20 +10,30 @@ import { withSnackBar } from '../../hoc/withSnackBar'
 import { useMutation } from '@tanstack/react-query'
 import ProfileImage from '../ProfileImage'
 import { router } from 'expo-router'
+import * as ImagePicker from 'expo-image-picker'
+import { icons } from '../../constants'
+import { uploadImageToCloudinary } from '../../utils/upload-image'
+
+//TODO Check reset image server
+//TODO Process env api cloud url
 
 const SettingsForm = ({ setVisibleSnackBar }) => {
-  const { user, signOut } = useGlobalContext()
-  const { mutate, isError, error, isPending } = useMutation({
+  const { user, setUser } = useGlobalContext()
+  const { mutate, isError, error } = useMutation({
     mutationFn: ({ userId, data }) => updateUser({ userId, data }),
-    onSuccess
+    onSuccess,
+    onError: () => setIsLoading(false)
   })
   useHandleError(isError, error, setVisibleSnackBar)
   const [form, setForm] = useState({
     email: user?.email || '',
     username: user?.username || '',
     oldPassword: '',
-    newPassword: ''
+    newPassword: '',
+    avatar: user?.avatar
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const isClearBtnDisabled = !form.avatar
 
   function validateFields() {
     const { email, oldPassword, username, newPassword } = form
@@ -72,27 +82,66 @@ const SettingsForm = ({ setVisibleSnackBar }) => {
     return isValid
   }
 
-  async function onSuccess() {
-    Alert.alert('Success', 'To see updated data, please sign in again.', [
-      {
-        text: 'Ok',
-        onPress: () => {
-          signOut()
-          router.replace('/sign-in')
-        }
+  async function openPicker() {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        aspect: [1, 1],
+        allowsEditing: true,
+        quality: 1
+      })
+
+      if (!result.canceled) {
+        setForm({ ...form, avatar: result.assets[0].uri })
       }
-    ])
+    } catch (e) {
+      setVisibleSnackBar('Failed to open image picker.')
+    }
   }
 
-  function handleSubmit() {
+  function clearImage() {
+    setForm({ ...form, avatar: undefined })
+  }
+
+  async function onSuccess() {
+    const { newPassword, oldPassword, ...rest } = form
+    setIsLoading(false)
+    setUser((user) => ({ ...user, ...rest }))
+    setVisibleSnackBar('Profile updated.', 'Success')
+  }
+
+  async function uploadImage(avatar) {
+    let res
+    try {
+      res = await uploadImageToCloudinary(avatar)
+    } catch (error) {
+      res = undefined
+      setVisibleSnackBar('Failed to upload image.')
+    }
+    return res
+  }
+
+  async function handleSubmit() {
     if (validateFields()) {
+      setIsLoading(true)
+
+      let avatar
+      if (form.avatar && form.avatar === user.avatar) {
+        avatar = undefined
+      } else if (!form.avatar) {
+        avatar = ''
+      } else {
+        avatar = await uploadImage(form.avatar)
+      }
+
       mutate({
         userId: user._id,
         data: {
           email: form.email,
           password: form.oldPassword || undefined,
           username: form.username,
-          newPassword: form.newPassword || undefined
+          newPassword: form.newPassword || undefined,
+          avatar
         }
       })
     }
@@ -102,21 +151,39 @@ const SettingsForm = ({ setVisibleSnackBar }) => {
     <View className="p-4 pt-0">
       <View className="flex justify-center items-center space-y-2">
         <ProfileImage
-          avatar={user?.avatar}
+          avatar={form.avatar}
           styles={'border-2 border-white w-28 h-28'}
         />
-        <CustomButton
-          title={'Upload Image'}
-          containerStyles={
-            'my-4 border min-h-[45px] border-secondary bg-primary px-4 rounded-md'
-          }
-          textStyles={'text-white text-sm'}
-        />
+        <View className="flex-row justify-center items-center">
+          <CustomButton
+            title={'Upload Image'}
+            handlePress={openPicker}
+            containerStyles={
+              'my-4 border min-h-[45px] border-secondary bg-primary px-4 rounded-md mr-4'
+            }
+            textStyles={'text-white text-sm'}
+          />
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={clearImage}
+            className={`border border-red-500 min-h-[45px] justify-center items-center px-4 rounded-md opacity-${
+              isClearBtnDisabled ? '30' : '100'
+            }`}
+            disabled={isClearBtnDisabled}
+          >
+            <Image
+              source={icons.clear}
+              className={'w-5 h-5'}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        </View>
       </View>
       <FormField
         title={'Username:'}
         value={form.username}
         handleChangeText={(e) => setForm({ ...form, username: e })}
+        textInputStyles={'capitalize'}
       />
       <FormField
         title={'Email:'}
@@ -143,7 +210,7 @@ const SettingsForm = ({ setVisibleSnackBar }) => {
         title={'Save Changes'}
         handlePress={handleSubmit}
         containerStyles={'mt-7'}
-        isLoading={isPending}
+        isLoading={isLoading}
       />
     </View>
   )

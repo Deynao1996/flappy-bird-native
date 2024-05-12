@@ -19,6 +19,7 @@ import success from '../assets/icons/success.png'
 import down from '../assets/icons/arrow-down.png'
 import lock from '../assets/icons/lock.png'
 import settings from '../assets/icons/settings.png'
+import clear from '../assets/icons/delete.png'
 
 export default {
   play,
@@ -41,5 +42,6 @@ export default {
   success,
   down,
   lock,
-  settings
+  settings,
+  clear
 }
