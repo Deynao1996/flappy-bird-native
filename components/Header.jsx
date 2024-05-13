@@ -2,9 +2,9 @@ import { View, Text, Image } from 'react-native'
 import React from 'react'
 import { images } from '../constants'
 
-const Header = ({ title, subtitle, showLogo = true }) => {
+const Header = ({ title, subtitle, showLogo = true, containerStyles }) => {
   return (
-    <View className="my-6 px-4 space-y-6">
+    <View className={`my-6 px-4 space-y-6 ${containerStyles}`}>
       <View className="justify-between items-start flex-row mb-6">
         <View>
           <View className="flex justify-between items-center flex-row">

@@ -20,6 +20,7 @@ import down from '../assets/icons/arrow-down.png'
 import lock from '../assets/icons/lock.png'
 import settings from '../assets/icons/settings.png'
 import clear from '../assets/icons/delete.png'
+import noAvatar from '../assets/icons/no-avatar.png'
 
 export default {
   play,
@@ -43,5 +44,6 @@ export default {
   down,
   lock,
   settings,
-  clear
+  clear,
+  noAvatar
 }

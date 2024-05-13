@@ -19,22 +19,21 @@ export default function App() {
           <Image
             source={images.cards}
             resizeMode="contain"
-            className="max-w-[380px] w-full h-[300px]"
+            className="max-w-[350px] w-full h-[320px]"
           />
-          <View className="mt-5 relative">
+          <View className="mt-5 relative max-w-sm">
             <Text className="text-3xl text-white font-bold text-center">
-              Discover Joyful Surprises with{' '}
+              Reconnect & Celebrate! Welcome to{' '}
               <Text className="text-secondary-200">exFriend</Text>
             </Text>
             <Image
               source={images.path}
-              className="w-[136px] h-[15px] absolute -bottom-2 -right-8"
+              className="w-[136px] h-[15px] absolute -bottom-2 -right-2"
               resizeMode="contain"
             />
           </View>
           <Text className="text-sm font-pregular text-gray-100 mt-7 text-center">
-            Unleash joy and heartfelt surprises with exFriend. Let's make every
-            day feel like a birthday celebration!
+            Rediscover old connections and cherish fond memories with exFriend!
           </Text>
           <CustomButton
             title={'Continue with Email'}

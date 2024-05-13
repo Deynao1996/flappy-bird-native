@@ -3,6 +3,7 @@ import React from 'react'
 import ProfileImage from './ProfileImage'
 import { icons } from '../constants'
 import { TARGET_USER_ID } from '../constants/store'
+import { truncateString } from '../utils/utils'
 
 const PlaceImage = ({ source }) => {
   return (
@@ -31,25 +32,29 @@ const Score = ({ user, index, isOwner }) => {
   }
 
   return (
-    <View className="px-4 mb-5">
-      <View className="flex flex-row items-center gap-5">
-        <View className="basis-6 relative">
-          <Text className="text-3xl text-white font-pbold">{currentPlace}</Text>
-          {setRelativeImage(currentPlace)}
-        </View>
-        <View className="flex flex-row gap-x-2">
-          <ProfileImage avatar={user?.avatar} styles={isOwner && 'border-2'} />
-          <View className="flex flex-row justify-between space-x-6">
-            <View className="flex flex-col">
-              <Text className="text-white text-md font-psemibold">
-                Score: {user.score}
-              </Text>
-              <Text className="text-gray-100 capitalize">{user.username}</Text>
-            </View>
-            <Text className="text-white text-md font-psemibold">
-              Copters: {user.copters}
+    <View className={`px-4 mb-2 py-1 ${isOwner && 'bg-[#222236]'}`}>
+      <View className="flex flex-row justify-between">
+        <View className="flex-1 flex-row items-center gap-x-5 mr-4">
+          <View className="relative basis-6">
+            <Text className="text-3xl text-white font-pbold">
+              {currentPlace}
+            </Text>
+            {setRelativeImage(currentPlace)}
+          </View>
+          <View className="flex flex-row items-center">
+            <ProfileImage avatar={user?.avatar} />
+            <Text className="text-gray-100 capitalize ml-2 font-pregular">
+              {truncateString(user.username, 10)}
             </Text>
           </View>
+        </View>
+        <View className="flex-1 flex-row justify-end items-center gap-x-4">
+          <Text className="text-white text-md font-psemibold flex-1 text-center">
+            {user.score}
+          </Text>
+          <Text className="text-white text-md font-psemibold flex-1 text-center">
+            {user.copters}
+          </Text>
         </View>
       </View>
     </View>

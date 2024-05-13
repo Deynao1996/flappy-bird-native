@@ -111,6 +111,7 @@ const App = () => {
   const baseGround = useImage(require('../assets/sprites/base.png'))
   const boom = useImage(require('../assets/sprites/boom.png'))
   const copter = useImage(require('../assets/sprites/plane.png'))
+  const helmet = useImage(require('../assets/sprites/helmet.png'))
 
   // Importing audio assets
   const { playSound: playHitSound } = useSound(
@@ -781,11 +782,11 @@ const App = () => {
                   />
                 </Text>
                 <Image
-                  image={copter}
-                  y={70 + PIPE_WIDTH / 1.5 / 6}
-                  x={giftScoreWidth}
-                  width={PIPE_WIDTH / 1.5}
-                  height={PIPE_WIDTH / 1.5}
+                  image={helmet}
+                  y={62 + PIPE_WIDTH / 1.5 / 6}
+                  x={giftScoreWidth.value - 8}
+                  width={PIPE_WIDTH}
+                  height={PIPE_WIDTH}
                   fit={'contain'}
                 />
               </Group>

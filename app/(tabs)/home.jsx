@@ -21,13 +21,12 @@ const Home = () => {
         <View />
         <View className="gap-20">
           <View className="flex flex-col items-center">
-            <Text className="text-lg font-pstart text-white">BE BRAVE!</Text>
-            {user?._id === TARGET_USER_ID && (
-              <Text className="text-lg font-pstart text-white">
-                HAPPY BIRTHDAY
-              </Text>
-            )}
-            <Text className="text-lg font-pstart text-white">AND</Text>
+            <Text className="text-md font-pstart text-white">BE BRAVE!</Text>
+            <Text className="text-md font-pstart text-white uppercase">
+              {user?._id === TARGET_USER_ID
+                ? 'HAPPY BIRTHDAY'
+                : 'Embrace Courage'}
+            </Text>
           </View>
           <View className="flex justify-between items-center flex-col">
             <View>

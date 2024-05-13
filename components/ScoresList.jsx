@@ -37,12 +37,26 @@ const ScoresList = ({ setVisibleSnackBar }) => {
         <Score user={item} index={index} isOwner={user?._id === item._id} />
       )}
       ListHeaderComponent={() => (
-        <Header
-          title={'Scoreboard'}
-          subtitle={
-            'Check out the scores of all players below. See how you stack up against others and track your progress over time'
-          }
-        />
+        <>
+          <Header
+            title={'Scoreboard'}
+            subtitle={
+              'Check out the scores of all players below. See how you stack up against others and track your progress over time'
+            }
+            containerStyles={'mb-1'}
+          />
+          <View className="flex justify-between px-4 mb-4 flex-row">
+            <View className="flex-1"></View>
+            <View className="flex-1 flex-row justify-end gap-x-4">
+              <Text className="font-psemibold text-white text-lg text-center flex-1">
+                Score
+              </Text>
+              <Text className="font-psemibold text-white text-lg text-center flex-1">
+                Copters
+              </Text>
+            </View>
+          </View>
+        </>
       )}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />

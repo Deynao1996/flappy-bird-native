@@ -77,7 +77,7 @@ const SignUpForm = ({ setVisibleSnackBar }) => {
     <View className="w-full min-h-[85vh] justify-center px-4 my-6">
       <Image
         source={images.logoLg}
-        className="w-[170px] h-[84px]"
+        className="w-[220px] h-[84px]"
         resizeMode="contain"
       />
       <Text className="text-2xl text-white font-psemibold mt-10">

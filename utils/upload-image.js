@@ -13,7 +13,7 @@ export const uploadImageToCloudinary = async (uri) => {
 
   try {
     const response = await axios.post(
-      'https://api.cloudinary.com/v1_1/dkl9cqqui/image/upload',
+      process.env.EXPO_PUBLIC_CLOUD_API,
       formData,
       {
         headers: {

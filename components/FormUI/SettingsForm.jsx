@@ -1,4 +1,4 @@
-import { View, Text, Alert, TouchableOpacity, Image } from 'react-native'
+import { View, TouchableOpacity, Image } from 'react-native'
 import React, { useState } from 'react'
 import FormField from '../FormField'
 import { useGlobalContext } from '../../context/GlobalProvider'
@@ -9,13 +9,9 @@ import CustomButton from '../CustomButton'
 import { withSnackBar } from '../../hoc/withSnackBar'
 import { useMutation } from '@tanstack/react-query'
 import ProfileImage from '../ProfileImage'
-import { router } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import { icons } from '../../constants'
 import { uploadImageToCloudinary } from '../../utils/upload-image'
-
-//TODO Check reset image server
-//TODO Process env api cloud url
 
 const SettingsForm = ({ setVisibleSnackBar }) => {
   const { user, setUser } = useGlobalContext()
