@@ -77,8 +77,6 @@ import { router } from 'expo-router'
 import { useGlobalContext } from '../context/GlobalProvider'
 import { updateUser } from '../utils/service'
 
-//TODO check fonts
-
 //Font settings
 const scoreFontSize = 40
 const fontFamily = Platform.select({ ios: 'Helvetica', default: 'sans-serif' })
@@ -453,7 +451,7 @@ const App = () => {
     showAlertAfterDelay({
       delay: 200,
       ...currentWishedContent,
-      alertConfig: [{ text: 'Thanks', onPress: handleThanks }]
+      alertConfig: [{ text: 'OK', onPress: handleThanks }]
     })
   }
 

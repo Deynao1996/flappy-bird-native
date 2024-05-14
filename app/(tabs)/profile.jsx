@@ -11,10 +11,6 @@ import { TARGET_USER_ID } from '../../constants/store'
 import GiftLogs from '../../components/GiftLogs'
 import { router } from 'expo-router'
 
-//TODO Check user settings
-//TODO Check policy
-//TODO Internet connection
-
 const Profile = () => {
   const { user, signOut } = useGlobalContext()
 

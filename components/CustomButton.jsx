@@ -2,6 +2,7 @@ import { Text, TouchableOpacity } from 'react-native'
 import React from 'react'
 
 const CustomButton = ({
+  children,
   title,
   handlePress,
   containerStyles,
@@ -20,6 +21,7 @@ const CustomButton = ({
       <Text className={`text-primary font-semibold text-lg ${textStyles}`}>
         {title}
       </Text>
+      {children}
     </TouchableOpacity>
   )
 }

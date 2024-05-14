@@ -1,5 +1,5 @@
 import { View, TouchableOpacity, Image } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import FormField from '../FormField'
 import { useGlobalContext } from '../../context/GlobalProvider'
 import { EMAIL_REGEX } from '../../constants/store'
@@ -148,17 +148,23 @@ const SettingsForm = ({ setVisibleSnackBar }) => {
       <View className="flex justify-center items-center space-y-2">
         <ProfileImage
           avatar={form.avatar}
-          styles={'border-2 border-white w-28 h-28'}
+          styles={'border-2 border-gray-100 w-28 h-28'}
         />
         <View className="flex-row justify-center items-center">
           <CustomButton
             title={'Upload Image'}
             handlePress={openPicker}
             containerStyles={
-              'my-4 border min-h-[45px] border-secondary bg-primary px-4 rounded-md mr-4'
+              'my-4 border min-h-[45px] border-secondary bg-primary px-4 rounded-md mr-4 flex-row'
             }
             textStyles={'text-white text-sm'}
-          />
+          >
+            <Image
+              source={icons.upload}
+              className={'w-5 h-5 ml-2'}
+              resizeMode="contain"
+            />
+          </CustomButton>
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={clearImage}

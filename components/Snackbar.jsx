@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import {
   View,
   Text,
-  TouchableOpacity,
   Animated,
   Dimensions,
   StyleSheet,
@@ -23,7 +22,6 @@ const Snackbar = ({
   snackBarType,
   duration,
   resetSnackBar,
-  actionLabel,
   isPermanent
 }) => {
   const fadeAnim = useState(new Animated.Value(0))[0]
@@ -92,11 +90,6 @@ const Snackbar = ({
             <Text style={SnackBarStyle.MessageText}>{message}</Text>
           </View>
         </View>
-        {actionLabel && (
-          <TouchableOpacity>
-            <Text style={SnackBarStyle.ActionLabel}>{actionLabel}</Text>
-          </TouchableOpacity>
-        )}
       </View>
     </Animated.View>
   ) : null
@@ -167,8 +160,8 @@ const SnackBarStyle = StyleSheet.create({
     fontSize: fontPixel(16)
   },
   IconStyle: {
-    width: pixelSizeHorizontal(24),
-    height: pixelSizeVertical(24)
+    width: pixelSizeHorizontal(28),
+    height: pixelSizeVertical(28)
   }
 })
 
