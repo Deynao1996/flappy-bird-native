@@ -9,7 +9,6 @@ export const COPTER_ANIMATION_DURATION = 2500
 
 export const GRAVITY = 800
 export const VELOCITY_ON_TAP = -400
-export const PIPE_BETWEEN_OFFSET = 70
 export const PIPE_LEFT_EDGE = -100
 export const COPTER_LEFT_EDGE = -150
 
@@ -38,7 +37,7 @@ export const COPTER_HEIGHT = 48
 export const COPTER_WIDTH = 150
 
 //TODO Check difficulty steps range
-export const APPEAR_GIFT_STEPS = [3, 8, 17, 23, 26]
+export const APPEAR_GIFT_STEPS = [3, 8, 17, 21, 25]
 export const GIFT_WISHES = [
   {
     title: 'День Рождения 🎂',

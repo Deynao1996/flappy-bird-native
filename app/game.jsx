@@ -52,7 +52,6 @@ import {
   GRAVITY,
   GROUND_HEIGHT,
   OVERLAY_COLOR,
-  PIPE_BETWEEN_OFFSET,
   PIPE_END_RANGE,
   PIPE_HEIGHT,
   PIPE_LEFT_EDGE,
@@ -182,14 +181,20 @@ const App = () => {
   const groundFirstHalfX = useDerivedValue(
     () => groundSecondHalfX.value + width
   )
+  const pipeBetweenOffset = useDerivedValue(() =>
+    interpolate(height, [700, 900], [15, 110], Extrapolation.CLAMP)
+  )
   const bottomPipeY = useDerivedValue(
-    () => height - PIPE_HEIGHT / 2 + pipeYOffset.value - PIPE_BETWEEN_OFFSET
+    () => height - PIPE_HEIGHT / 2 + pipeYOffset.value - pipeBetweenOffset.value
   )
   const topPipeY = useDerivedValue(
-    () => pipeYOffset.value - PIPE_HEIGHT / 2 + PIPE_BETWEEN_OFFSET
+    () => pipeYOffset.value - PIPE_HEIGHT / 2 + pipeBetweenOffset.value
   )
   const bottomGiftY = useDerivedValue(
-    () => bottomPipeY.value - PIPE_BETWEEN_OFFSET - PIPE_WIDTH / 3
+    () =>
+      bottomPipeY.value -
+      pipeBetweenOffset.value -
+      PIPE_WIDTH / (pipeBetweenOffset.value / 15)
   )
   const speedCoefficient = useDerivedValue(() =>
     interpolate(score.value, [0, 20], [1, 2], Extrapolation.CLAMP)
