@@ -5,12 +5,8 @@ import { images } from '../../constants'
 import CustomButton from '../../components/CustomButton'
 import { StatusBar } from 'expo-status-bar'
 import { router } from 'expo-router'
-import { useGlobalContext } from '../../context/GlobalProvider'
-import { TARGET_USER_ID } from '../../constants/store'
 
 const Home = () => {
-  const { user } = useGlobalContext()
-
   return (
     <SafeAreaView className="bg-primary h-full w-full relative">
       <ImageBackground
@@ -23,9 +19,7 @@ const Home = () => {
           <View className="flex flex-col items-center">
             <Text className="text-md font-pstart text-white">BE BRAVE!</Text>
             <Text className="text-md font-pstart text-white uppercase">
-              {user?._id === TARGET_USER_ID
-                ? 'HAPPY BIRTHDAY'
-                : 'Embrace Courage'}
+            Embrace Courage
             </Text>
           </View>
           <View className="flex justify-between items-center flex-col">

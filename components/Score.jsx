@@ -2,7 +2,6 @@ import { View, Text, Image } from 'react-native'
 import React from 'react'
 import ProfileImage from './ProfileImage'
 import { icons } from '../constants'
-import { TARGET_USER_ID } from '../constants/store'
 import { truncateString } from '../utils/utils'
 
 const PlaceImage = ({ source }) => {

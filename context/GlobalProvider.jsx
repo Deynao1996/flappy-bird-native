@@ -3,7 +3,6 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { loginWithJWT } from '../utils/service'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useSound } from '../hooks/useSound'
-import { TARGET_USER_ID } from '../constants/store'
 
 const GlobalContext = createContext()
 export const useGlobalContext = () => useContext(GlobalContext)
@@ -40,7 +39,7 @@ const GlobalProvider = ({ children }) => {
   }, [])
 
   useEffect(() => {
-    if (user && user._id === TARGET_USER_ID && isFirstRenderRef.current) {
+    if (user && isFirstRenderRef.current) {
       isFirstRenderRef.current = false
       playSound()
     }

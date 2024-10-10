@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "exFriend",
+    "name": "Ex Friend",
     "slug": "exFriend",
     "scheme": "exFriend",
     "version": "1.0.0",
@@ -22,7 +22,11 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#161622"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.dbvision.exFriend"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -35,6 +39,14 @@
           "photosPermission": "The app accesses your photos to let you share them with others."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "1dd11f1b-e8b4-4573-a20a-b6e6a97357fb"
+      }
+    }
   }
 }

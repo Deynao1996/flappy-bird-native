@@ -64,7 +64,6 @@ import {
   SCORE_GRADIENT_VIBRANT,
   SCORE_Y,
   SPEER_WIDTH,
-  TARGET_USER_ID,
   VELOCITY_ON_TAP
 } from '../constants/store'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -346,10 +345,8 @@ const App = () => {
       gameOnPause
     )
 
-    if (user?._id === TARGET_USER_ID) {
-      const updatedGiftSteps = APPEAR_GIFT_STEPS.slice(user?.gifts)
-      changeOpacityWithOverlap(updatedGiftSteps, giftOpacity)
-    }
+    const updatedGiftSteps = APPEAR_GIFT_STEPS.slice(user?.gifts)
+    changeOpacityWithOverlap(updatedGiftSteps, giftOpacity)
     changeOpacityWithOverlap(appearCopterSteps.value, copterOpacity)
   }
 
